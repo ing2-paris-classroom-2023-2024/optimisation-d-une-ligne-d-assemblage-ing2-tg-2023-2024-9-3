@@ -1,6 +1,40 @@
-#include "edouard.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+struct t_graphe {
+    int **matriceAdjacence;
+    int nombreSommets;
+};
+typedef struct t_graphe Graphe;
+
+struct t_station {
+    int *operation;
+    int nb_operation;
+};
+typedef struct t_station Station;
+
+// Fonction pour lire le nombre d'opérations à partir du fichier
+int lireNombreOperations(const char *nomFichier) {
+    FILE *fichier = fopen(nomFichier, "r");
+    if (fichier == NULL) {
+        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
+        exit(0);
+    }
+
+    int nombreOperations = 0;
+    int sommet1, sommet2;
+    while (fscanf(fichier, "%d %d", &sommet1, &sommet2) == 2) {
+        if (sommet1 > nombreOperations) {
+            nombreOperations = sommet1;
+        }
+        if (sommet2 > nombreOperations) {
+            nombreOperations = sommet2;
+        }
+    }
+
+    fclose(fichier);
+    return nombreOperations;
+}
 
 void lireContraintes(const char *nomFichier, int contraintes[][2], int *nombreContraintes) {
     FILE *fichier = fopen(nomFichier, "r");
@@ -58,10 +92,11 @@ void libererGraphe(Graphe graphe) {
 // Ajout d'une fonction pour libérer la mémoire allouée pour les tâches de chaque station
 void libererStations(Station stations[], int nombreStations) {
     for (int i = 1; i <= nombreStations; i++) {
-        free(stations[i].taches);
+        free(stations[i].operation);
     }
 }
-// coloration d'un graphe grâce a l'algorithme naif
+
+// Coloration d'un graphe grâce à l'algorithme naif
 void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations) {
     int *couleurs = (int *)calloc((graphe.nombreSommets + 1), sizeof(int));
     if (couleurs == NULL) {
@@ -102,53 +137,52 @@ void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations) {
         }
     }
     for (int i = 1; i <= *nombreStations; i++) {
-        stations[i].taches = (int *)malloc(graphe.nombreSommets * sizeof(int));
-        stations[i].nombreTaches = 0;
+        stations[i].operation = (int *)malloc(graphe.nombreSommets * sizeof(int));
+        stations[i].nb_operation = 0;
     }
-    // Ajout de chaque opérations a la station associé
+    // Ajout de chaque opération à la station associée
     for (int sommet = 1; sommet <= graphe.nombreSommets; sommet++) {
-        stations[couleurs[sommet]].taches[stations[couleurs[sommet]].nombreTaches++] = sommet;
+        stations[couleurs[sommet]].operation[stations[couleurs[sommet]].nb_operation++] = sommet;
     }
     free(couleurs);
 }
 
-void afficherStations(Station stations[], int nombreStations) {
+void afficherStations(Station stations[], int nombreStations, int nombreOperations) {
+    printf("Nombre total d'operations : %d\n", nombreOperations);
     printf("Repartition des stations :\n");
     for (int i = 1; i <= nombreStations; i++) {
         printf("Station %d : \n", i);
-        printf("operations : ");
-        for (int j = 0; j < stations[i].nombreTaches; j++) {
-            printf(" %d ", stations[i].taches[j]);
+        printf("Operations : ");
+        for (int j = 0; j < stations[i].nb_operation; j++) {
+            printf(" %d ", stations[i].operation[j]);
         }
         printf("\n");
     }
 
-    printf("Lorsqu'on considere que les contraintes d'exclusion nous obtenons %d stations \n", nombreStations);
+    printf("Lorsqu'on considere que les contraintes d'exclusion, nous obtenons %d stations \n", nombreStations);
 }
 
 void repartition_station_exclusion(char *fichier) {
-    int nb_operation =0 ;
-    printf("combien d'operation doivent etre effectuer au total : \n");
-    scanf("%d",&nb_operation);
-    int contraintes[nb_operation][2];
+    int nombre_operations = lireNombreOperations(fichier);
+    int contraintes[nombre_operations][2];
     int nombreContraintes;
     Graphe graphe;
-    Station stations[nb_operation];
+    Station stations[nombre_operations];
     int nombreStations = 0;
     lireContraintes(fichier, contraintes, &nombreContraintes);
     graphe = creerGraphe(contraintes, nombreContraintes);
     colorerGraphe(graphe, stations, &nombreStations);
-    afficherStations(stations, nombreStations);
+    afficherStations(stations, nombreStations, nombre_operations);
     libererGraphe(graphe);
     libererStations(stations, nombreStations);
 }
 
+
 int main() {
+    Graphe graphe ;
+    const char *operation = "../operation.txt";
+    const char *precedences = "../precedences.txt";
     char *exclusion = "../exclusion.txt";
     repartition_station_exclusion(exclusion);
     return 0;
 }
-
-
-
-

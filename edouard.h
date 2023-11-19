@@ -11,8 +11,8 @@ struct t_graphe {
 typedef struct t_graphe Graphe;
 
 struct t_station {
-    int *taches;
-    int nombreTaches;
+    int *operation;
+    int nb_operation;
 };
 typedef struct t_station Station;
 #endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_EDOUARD_H
