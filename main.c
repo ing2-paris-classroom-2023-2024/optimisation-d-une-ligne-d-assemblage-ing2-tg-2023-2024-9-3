@@ -77,3 +77,4 @@ int main() {
     free(graphe.matricePonderation);
     return 0;
 }
+//suite a faire
