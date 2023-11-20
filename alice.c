@@ -6,5 +6,5 @@
 
 int main()
 {
-    printf("ok");
+    printf("okk");
 };
