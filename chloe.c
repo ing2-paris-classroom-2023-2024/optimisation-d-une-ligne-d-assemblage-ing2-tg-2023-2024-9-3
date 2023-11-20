@@ -58,7 +58,7 @@ void afficherGraphePonderation(Graphe_pondere graphe) {
     printf("Graphe :\n");
     for (int i = 1; i <= graphe.nombreSommets; i++) {
         for (int j = 1; j <= graphe.nombreSommets; j++) {
-            if (graphe.matricePonderation[i][j] != 0.0) {
+            if (i != j && graphe.matricePonderation[i][j] != 0.0) {
                 printf("(%d, %d): %f\n", i, j, graphe.matricePonderation[i][j]);
             }
         }
@@ -68,8 +68,8 @@ int main() {
     Graphe_pondere graphe;
     graphe.nombreSommets = 0;
     graphe.matricePonderation = NULL;
-    lirePonderations("../operation.txt", &graphe);
-    lireGraphe("../precedences.txt", &graphe);
+    lirePonderations("../operations.txt", &graphe);
+    lireGraphe("../precedence.txt", &graphe);
     afficherGraphePonderation(graphe);
     for (int i = 0; i <= graphe.nombreSommets; i++) {
         free(graphe.matricePonderation[i]);
