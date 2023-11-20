@@ -151,11 +151,10 @@ void repartition_station_exclusion(char *fichier) {
 
 
 int main() {
-
     Graphe graphe ;
-    const char *operations = "../operations.txt";
+    const char *operation = "../operation.txt";
     const char *precedences = "../precedences.txt";
-    char *exclusions = "../exclusion.txt";
-    repartition_station_exclusion(exclusions);
+    char *exclusion = "../exclusion.txt";
+    repartition_station_exclusion(exclusion);
     return 0;
 }
