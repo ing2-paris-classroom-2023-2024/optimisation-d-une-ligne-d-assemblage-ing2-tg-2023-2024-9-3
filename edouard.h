@@ -9,6 +9,11 @@ struct t_graphe {
     int nombreSommets;
 };
 typedef struct t_graphe Graphe;
+struct t_graheponderer {
+    float **matrceponderation;
+    int nbsommet
+};
+typedef struct t_grapheponderer Graphe_ponderer;
 
 struct t_station {
     int *operation;

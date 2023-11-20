@@ -1,26 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "edouard.h"
 
-struct t_graphe {
-    int **matriceAdjacence;
-    int nombreSommets;
-};
-typedef struct t_graphe Graphe;
-
-struct t_station {
-    int *operation;
-    int nb_operation;
-};
-typedef struct t_station Station;
-
-// Fonction pour lire le nombre d'opérations à partir du fichier
 int lireNombreOperations(const char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
         printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
         exit(0);
     }
-
     int nombreOperations = 0;
     int sommet1, sommet2;
     while (fscanf(fichier, "%d %d", &sommet1, &sommet2) == 2) {
@@ -31,7 +18,6 @@ int lireNombreOperations(const char *nomFichier) {
             nombreOperations = sommet2;
         }
     }
-
     fclose(fichier);
     return nombreOperations;
 }
@@ -82,19 +68,6 @@ Graphe creerGraphe(int contraintes[][2], int nombreContraintes) {
     return graphe;
 }
 
-void libererGraphe(Graphe graphe) {
-    for (int i = 0; i <= graphe.nombreSommets; i++) {
-        free(graphe.matriceAdjacence[i]);
-    }
-    free(graphe.matriceAdjacence);
-}
-
-// Ajout d'une fonction pour libérer la mémoire allouée pour les tâches de chaque station
-void libererStations(Station stations[], int nombreStations) {
-    for (int i = 1; i <= nombreStations; i++) {
-        free(stations[i].operation);
-    }
-}
 
 // Coloration d'un graphe grâce à l'algorithme naif
 void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations) {
@@ -173,8 +146,6 @@ void repartition_station_exclusion(char *fichier) {
     graphe = creerGraphe(contraintes, nombreContraintes);
     colorerGraphe(graphe, stations, &nombreStations);
     afficherStations(stations, nombreStations, nombre_operations);
-    libererGraphe(graphe);
-    libererStations(stations, nombreStations);
 }
 
 
