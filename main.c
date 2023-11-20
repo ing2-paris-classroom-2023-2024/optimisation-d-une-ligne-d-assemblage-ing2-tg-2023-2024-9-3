@@ -20,6 +20,7 @@ int lireNombreOperations(const char *nomFichier) {
     }
     fclose(fichier);
     return nombreOperations;
+
 }
 
 void lireContraintes(const char *nomFichier, int contraintes[][2], int *nombreContraintes) {
