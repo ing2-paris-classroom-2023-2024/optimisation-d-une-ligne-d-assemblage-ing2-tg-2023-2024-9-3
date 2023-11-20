@@ -69,7 +69,7 @@ int main() {
     graphe.nombreSommets = 0;
     graphe.matricePonderation = NULL;
     lirePonderations("../operations.txt", &graphe);
-    lireGraphe("../precedence.txt", &graphe);
+    lireGraphe("../precedences.txt", &graphe);
     afficherGraphePonderation(graphe);
     for (int i = 0; i <= graphe.nombreSommets; i++) {
         free(graphe.matricePonderation[i]);

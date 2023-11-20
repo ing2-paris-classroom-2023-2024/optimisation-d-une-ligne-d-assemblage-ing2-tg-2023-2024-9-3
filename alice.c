@@ -3,7 +3,7 @@
 int ouvrir_fichiers() {
     FILE *file1, *file2, *file3;
 
-    file1 = fopen("../precedence.txt", "r");
+    file1 = fopen("../precedences.txt", "r");
     file2 = fopen("../operations.txt", "r");
     file3 = fopen("../exclusions.txt", "r");
 
