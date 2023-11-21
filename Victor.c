@@ -1,35 +1,24 @@
 #include <stdio.h>
 
-int ouvrir_fichiers() {
-    FILE *file1, *file2, *file3;
+int main() {
+    double valeurTC;
+    FILE *fichier = fopen("temps_cycle.txt", "r");
 
-    file1 = fopen("../precedence.txt", "r");
-    file2 = fopen("../operations.txt", "r");
-    file3 = fopen("../exclusions.txt", "r");
-
-
-    if (file1 == NULL || file2 == NULL || file3 == NULL) {
-
-        if (file1 != NULL) fclose(file1);
-        if (file2 != NULL) fclose(file2);
-        if (file3 != NULL) fclose(file3);
-
+    if (fichier == NULL) {
+        fprintf(stderr, "Erreur lors de l'ouverture du fichier.\n");
         return 1;
     }
-    fclose(file1);
-    fclose(file2);
-    fclose(file3);
-
-    return 0;
-}
-
-int main() {
-    int resultat = ouvrir_fichiers();
-    if (resultat == 0) {
-        printf("Pas de pb.\n");
-    } else {
-        printf("Erreur\n");
+    if (fscanf(fichier, "%lf", &valeurTC) != 1) {
+        fprintf(stderr, "Erreur lors de la lecture de la valeurTC depuis le fichier.\n");
+        fclose(fichier);
+        return 1;
     }
+
+    fclose(fichier);
+
+    const double temps_cycle = valeurTC;
+
+    printf("Le temps de cycle est: %lf\n", temps_cycle);
 
     return 0;
 }
