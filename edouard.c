@@ -168,6 +168,7 @@ int liretempscycle(char *nomFichier) {
 }
 
 int main() {
+
     Graphe graphe ;
     char *operation = "../operation.txt";
     char *precedences = "../precedences.txt";
