@@ -13,7 +13,11 @@ struct SommetDijkstra {
     int sommet;
     float distance;
 };
-
+struct CheminMaximal {
+    int sommet;
+    float poids;
+    int *chemin;
+};
 void lireGraphe(const char *nomFichier, Graphe_pondere *graphe) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
@@ -144,7 +148,7 @@ struct CheminMinimal dijkstra(Graphe_pondere *graphe, int sommetInitial, int som
 
     distances[sommetInitial] = 0;
 
-    // Algorithme de Dijkstra
+// Algorithme de Dijkstra
     while (1) {
         // Trouver le sommet avec la plus petite distance non traité
         int sommetActuel = -1;
@@ -160,10 +164,10 @@ struct CheminMinimal dijkstra(Graphe_pondere *graphe, int sommetInitial, int som
             break; // Tous les sommets ont été traités ou le sommet final a été atteint
         }
 
-        // Mettre à jour les distances
+// Mettre à jour les distances
         for (int voisin = 1; voisin <= graphe->nombreSommets; voisin++) {
             if (graphe->matricePonderation[sommetActuel][voisin] != 0.0) {
-                float nouvelleDistance = distances[sommetActuel] + graphe->temps[voisin];
+                float nouvelleDistance = distances[sommetActuel] + graphe->temps[voisin] * graphe->matricePonderation[sommetActuel][voisin];
                 if (nouvelleDistance < distances[voisin]) {
                     distances[voisin] = nouvelleDistance;
                     predecesseurs[voisin] = sommetActuel;
@@ -171,19 +175,24 @@ struct CheminMinimal dijkstra(Graphe_pondere *graphe, int sommetInitial, int som
             }
         }
 
+
         distances[sommetActuel] = -1; // Marquer le sommet comme traité
     }
 
     // Construire le chemin minimal
     struct CheminMinimal chemin;
     chemin.sommet = sommetFinal;
-    chemin.poids = distances[sommetFinal];
+    chemin.poids = 0.0;  // Initialiser la somme des poids
 
     // Compter le nombre de sommets dans le chemin
     int nombreSommetsChemin = 0;
     int sommet = sommetFinal;
     while (sommet != -1) {
-        sommet = predecesseurs[sommet];
+        int predecesseur = predecesseurs[sommet];
+        if (predecesseur != -1) {
+            chemin.poids += graphe->temps[sommet];  // Ajouter le poids de l'arête
+        }
+        sommet = predecesseur;
         nombreSommetsChemin++;
     }
 
@@ -194,7 +203,7 @@ struct CheminMinimal dijkstra(Graphe_pondere *graphe, int sommetInitial, int som
         sommet = predecesseurs[sommet];
     }
 
-// Ajouter la valeur spéciale à la fin du tableau
+    // Ajouter la valeur spéciale à la fin du tableau
     chemin.chemin[nombreSommetsChemin] = -1;
 
     free(distances);
@@ -202,6 +211,84 @@ struct CheminMinimal dijkstra(Graphe_pondere *graphe, int sommetInitial, int som
 
     return chemin;
 }
+struct CheminMaximal maxWeightPath(Graphe_pondere *graphe, int sommetInitial, int sommetFinal) {
+    float *distances = (float *)malloc((graphe->nombreSommets + 1) * sizeof(float));
+    int *predecesseurs = (int *)malloc((graphe->nombreSommets + 1) * sizeof(int));
+
+    // Initialize distances and predecessors
+    for (int i = 1; i <= graphe->nombreSommets; i++) {
+        distances[i] = -1;  // Start with -1 for distances
+        predecesseurs[i] = -1;
+    }
+
+    distances[sommetInitial] = 0;
+
+    // Dijkstra-like algorithm for maximum weight path
+    while (1) {
+        // Find the vertex with the maximum distance not yet processed
+        int sommetActuel = -1;
+        float maxDistance = -1;
+        for (int i = 1; i <= graphe->nombreSommets; i++) {
+            if (distances[i] > maxDistance) {
+                maxDistance = distances[i];
+                sommetActuel = i;
+            }
+        }
+
+        if (sommetActuel == -1 || sommetActuel == sommetFinal) {
+            break; // All vertices have been processed or the final vertex is reached
+        }
+
+        // Update distances
+        for (int voisin = 1; voisin <= graphe->nombreSommets; voisin++) {
+            if (graphe->matricePonderation[sommetActuel][voisin] != 0.0) {
+                float nouvelleDistance = distances[sommetActuel] + graphe->matricePonderation[sommetActuel][voisin];
+                if (nouvelleDistance > distances[voisin]) {
+                    distances[voisin] = nouvelleDistance;
+                    predecesseurs[voisin] = sommetActuel;
+                }
+            }
+        }
+
+        distances[sommetActuel] = -1; // Mark the vertex as processed
+    }
+
+    // Build the maximal weight path
+    struct CheminMaximal cheminMax;
+    cheminMax.sommet = sommetFinal;
+    cheminMax.poids = 0.0;  // Initialize the sum of weights
+
+    // Count the number of vertices in the path
+    int nombreSommetsCheminMax = 0;
+    int sommet = sommetFinal;
+    while (sommet != -1) {
+        int predecesseur = predecesseurs[sommet];
+        if (predecesseur != -1) {
+            cheminMax.poids += graphe->matricePonderation[predecesseur][sommet];  // Add the weight of the edge
+        }
+        sommet = predecesseur;
+        nombreSommetsCheminMax++;
+    }
+
+    cheminMax.chemin = (int *)malloc((nombreSommetsCheminMax + 1) * sizeof(int));
+    sommet = sommetFinal;
+    for (int i = nombreSommetsCheminMax - 1; i >= 0; i--) {
+        cheminMax.chemin[i] = sommet;
+        sommet = predecesseurs[sommet];
+    }
+
+    // Add the special value at the end of the array
+    cheminMax.chemin[nombreSommetsCheminMax] = -1;
+
+    free(distances);
+    free(predecesseurs);
+
+    return cheminMax;
+}
+
+
+
+
 int main() {
     Graphe_pondere graphe;
     initialiserGraphe(&graphe);
@@ -239,7 +326,7 @@ int main() {
             struct CheminMinimal chemin = dijkstra(&graphe, sommetInitial, i);
             printf("Chemin minimal pour le sommet %d : ", i);
 
-            // Parcourir le tableau jusqu'à la valeur spéciale (-1)
+            // Traverse the array until the special value (-1)
             int j = 0;
             while (chemin.chemin[j] != -1) {
                 printf("%d ", chemin.chemin[j]);
@@ -250,6 +337,32 @@ int main() {
             free(chemin.chemin);
         }
     }
+
+    printf("\nChemins de poids maximal :\n");
+    for (int i = 1; i <= graphe.nombreSommets; i++) {
+        int predecesseurs = 0;
+        for (int j = 1; j <= graphe.nombreSommets; j++) {
+            if (graphe.matricePonderation[j][i] != 0.0) {
+                predecesseurs++;
+            }
+        }
+        if (predecesseurs == 2) {
+            struct CheminMaximal cheminMax = maxWeightPath(&graphe, sommetInitial, i);
+            printf("Chemin maximal pour le sommet %d : ", i);
+
+            // Traverse the array until the special value (-1)
+            int j = 0;
+            while (cheminMax.chemin[j] != -1) {
+                printf("%d ", cheminMax.chemin[j]);
+                j++;
+            }
+
+            printf(" (Poids : %.2f)\n", cheminMax.poids);
+            free(cheminMax.chemin);
+        }
+
+    }
+
 
     // ... (Libération de la mémoire et autres opérations)
 
