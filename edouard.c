@@ -154,12 +154,27 @@ void repartition_station_exclusion(char *fichier) {
     colorerGraphe(graphe, stations, &nombreStations);
     afficherStations(stations, nombreStations, nombre_operations);
 }
+int liretempscycle(char *nomFichier) {
+    int temps;
+    FILE *fichier = fopen(nomFichier, "r");
+    if (fichier == NULL) {
+        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
+        exit(0);
+    }
+    fscanf(fichier, "%d", &temps) ;
+    printf("temps_cycle %d ", temps);
+    fclose(fichier);
+    return temps ;
+}
 
 int main() {
+
     Graphe graphe ;
-    const char *operation = "../operation.txt";
-    const char *precedences = "../precedences.txt";
+    char *operation = "../operation.txt";
+    char *precedences = "../precedences.txt";
     char *exclusion = "../exclusions.txt";
+    char *temps_cycle = "../temps_cycle.txt";
     repartition_station_exclusion(exclusion);
+    liretempscycle(temps_cycle);
     return 0;
 }
