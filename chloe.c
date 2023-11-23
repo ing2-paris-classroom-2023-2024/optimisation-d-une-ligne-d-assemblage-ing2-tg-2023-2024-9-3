@@ -115,7 +115,7 @@ struct CheminMaximal dijkstra(Graphe_pondere *graphe, int sommetInitial, int som
     int *predecesseurs = (int *)malloc((graphe->nombreSommets + 1) * sizeof(int));
 
     for (int i = 1; i <= graphe->nombreSommets; i++) {
-        distances[i] = 0;
+        distances[i] = -1;  // Initialize distances to -1
         predecesseurs[i] = -1;
     }
 
