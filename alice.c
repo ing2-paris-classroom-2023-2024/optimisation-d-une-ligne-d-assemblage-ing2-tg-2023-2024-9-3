@@ -56,14 +56,16 @@ int main() {
     int nombre_operations = 0;
     int nombre_contraintes = 0;
     int t_cycle;
+    int *precedences;
+    int *tempscycle;
 
     lire_operations(operations, operations, &nombre_operations);
-    //lire_contraintes(precedences, contraintes, &nombre_contraintes);
-    //lire_temps_cycle(fichier_temps_cycle, &t_cycle);
+    lire_contraintes(precedences, contraintes, &nombre_contraintes);
+    lire_temps_cycle(tempscycle, &t_cycle);
 
-   // fclose(precedences);
+    fclose(precedences);
     fclose(operations);
-   // fclose(tempscycle);
+    fclose(tempscycle);
 
     return 0;
 }
