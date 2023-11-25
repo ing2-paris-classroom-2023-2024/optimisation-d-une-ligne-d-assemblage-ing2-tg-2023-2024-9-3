@@ -63,7 +63,7 @@ int main() {
 
    // fclose(precedences);
     fclose(operations);
-   /// fclose(tempscycle);
+   // fclose(tempscycle);
 
     return 0;
 }
