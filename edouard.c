@@ -12,22 +12,22 @@
 int lireNombreOperations(const char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
-        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
+        printf("Erreur de l'ouverture du fichier : %s\n", nomFichier);
         exit(0);
     }
+
+    int caractere;
     int nombreOperations = 0;
-    int sommet1, sommet2;
-    while (fscanf(fichier, "%d %d", &sommet1, &sommet2) == 2) {
-        if (sommet1 > nombreOperations) {
-            nombreOperations = sommet1;
-        }
-        if (sommet2 > nombreOperations) {
-            nombreOperations = sommet2;
+
+    while ((caractere = fgetc(fichier)) != EOF) {
+        if (caractere == '\n') {
+            // Increment the count for each newline character
+            nombreOperations++;
         }
     }
+
     fclose(fichier);
     return nombreOperations;
-
 }
 
 void lireContraintes(const char *nomFichier, int contraintes[][2], int *nombreContraintes) {
@@ -143,14 +143,14 @@ void afficherStations(Station stations[], int nombreStations, int nombreOperatio
     printf("Lorsqu'on considere que les contraintes d'exclusion, nous obtenons %d stations \n", nombreStations);
 }
 
-void repartition_station_exclusion(char *fichier) {
-    int nombre_operations = lireNombreOperations(fichier);
+void repartition_station_exclusion(char *fichier_exclusion, char *fichier_operation) {
+    int nombre_operations = lireNombreOperations(fichier_operation);
     int contraintes[nombre_operations][2];
     int nombreContraintes;
     Graphe graphe;
     Station stations[nombre_operations];
     int nombreStations = 0;
-    lireContraintes(fichier, contraintes, &nombreContraintes);
+    lireContraintes(fichier_exclusion, contraintes, &nombreContraintes);
     graphe = creerGraphe(contraintes, nombreContraintes);
     colorerGraphe(graphe, stations, &nombreStations);
     afficherStations(stations, nombreStations, nombre_operations);
@@ -171,11 +171,11 @@ int liretempscycle(char *nomFichier) {
 int main() {
 
     Graphe graphe ;
-    char *operation = "../operation.txt";
+    char *operation = "../operations.txt";
     char *precedences = "../precedences.txt";
     char *exclusion = "../exclusions.txt";
     char *temps_cycle = "../temps_cycle.txt";
-    repartition_station_exclusion(exclusion);
-    liretempscycle(temps_cycle);
+    repartition_station_exclusion(exclusion, operation);
+    //liretempscycle(temps_cycle);
     return 0;
 }
