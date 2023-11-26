@@ -11,6 +11,7 @@ typedef struct t_graphe Graphe;
 struct t_station {
     int *operation;
     int nb_operation;
+    int temps_total;
 };
 typedef struct t_station Station;
 
@@ -28,6 +29,20 @@ int lireNombreOperations(const char *nomFichier) {
     }
     fclose(fichier);
     return nombreOperations;
+}
+
+void lireDureeOperations(const char *nomFichier, int durees[], int nombreOperations) {
+    FILE *fichier = fopen(nomFichier, "r");
+    if (fichier == NULL) {
+        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
+        exit(0);
+    }
+
+    for (int i = 0; i < nombreOperations; i++) {
+        fscanf(fichier, "%d", &durees[i]);
+    }
+
+    fclose(fichier);
 }
 
 void lireContraintes(const char *nomFichier, int contraintes[][2], int *nombreContraintes) {
@@ -85,31 +100,34 @@ Graphe creerGrapheExclusionPrecedence(int contraintesExclusion[][2], int nombreC
     return graphe;
 }
 
-void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations) {
+void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations, int durees[]) {
     int *couleurs = (int *)calloc((graphe.nombreSommets + 1), sizeof(int));
     if (couleurs == NULL) {
-        printf( "Erreur \n");
+        printf("Erreur \n");
         exit(0);
     }
+
     for (int i = 1; i <= graphe.nombreSommets; i++) {
         couleurs[i] = 0;
     }
+
     for (int sommet = 1; sommet <= graphe.nombreSommets; sommet++) {
         int couleurDisponible = 1;
 
         for (int voisin = 1; voisin <= graphe.nombreSommets; voisin++) {
-            if (graphe.matriceAdjacencePrecedence[sommet][voisin] && couleurs[voisin] != 0) {
+            if (graphe.matriceAdjacenceExclusion[sommet][voisin] && couleurs[voisin] != 0) {
                 couleurDisponible = 0;
                 break;
             }
         }
+
         if (couleurDisponible) {
             couleurs[sommet] = 1;
         } else {
             for (int couleur = 2; couleur <= *nombreStations + 1; couleur++) {
                 int couleurLibre = 1;
                 for (int voisin = 1; voisin <= graphe.nombreSommets; voisin++) {
-                    if (graphe.matriceAdjacencePrecedence[sommet][voisin] && couleurs[voisin] == couleur) {
+                    if (graphe.matriceAdjacenceExclusion[sommet][voisin] && couleurs[voisin] == couleur) {
                         couleurLibre = 0;
                         break;
                     }
@@ -120,24 +138,30 @@ void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations) {
                 }
             }
         }
+
         if (couleurs[sommet] > *nombreStations) {
             *nombreStations = couleurs[sommet];
         }
     }
+
     for (int i = 1; i <= *nombreStations; i++) {
         stations[i].operation = (int *)malloc(graphe.nombreSommets * sizeof(int));
         stations[i].nb_operation = 0;
+        stations[i].temps_total = 0;
     }
 
     for (int sommet = 1; sommet <= graphe.nombreSommets; sommet++) {
         stations[couleurs[sommet]].operation[stations[couleurs[sommet]].nb_operation++] = sommet;
+        stations[couleurs[sommet]].temps_total += durees[sommet - 1];
     }
+
     free(couleurs);
 }
 
 void afficherStations(Station stations[], int nombreStations, int nombreOperations) {
     printf("Nombre total d'operations : %d\n", nombreOperations);
     printf("Repartition des stations :\n");
+
     for (int i = 1; i <= nombreStations; i++) {
         printf("Station %d : \n", i);
         printf("Operations : ");
@@ -145,13 +169,15 @@ void afficherStations(Station stations[], int nombreStations, int nombreOperatio
             printf(" %d ", stations[i].operation[j]);
         }
         printf("\n");
+        printf("Temps total : %d\n", stations[i].temps_total);
     }
 
-    printf("Lorsqu'on considere les multicontraintes on obtient \n", nombreStations);
+    printf("Lorsqu'on considere les contraintes d'exclusion, de precedence et aussi de temps de cycle nous obtenons %d stations \n", nombreStations);
 }
 
-void repartition_station_exclusion_precedence(char *fichierExclusion, char *fichierPrecedence, char *operations) {
+void repartition_station_exclusion_precedence(char *fichierExclusion, char *fichierPrecedence, char *operations, char *tempsCycle) {
     int nombre_operations = lireNombreOperations(operations);
+    int durees[nombre_operations];
     int contraintesExclusion[nombre_operations][2];
     int contraintesPrecedence[nombre_operations][2];
     int nombreContraintesExclusion, nombreContraintesPrecedence;
@@ -160,12 +186,13 @@ void repartition_station_exclusion_precedence(char *fichierExclusion, char *fich
     Station stations[nombre_operations];
     int nombreStations = 0;
 
+    lireDureeOperations(tempsCycle, durees, nombre_operations);
     lireContraintes(fichierExclusion, contraintesExclusion, &nombreContraintesExclusion);
     lireContraintes(fichierPrecedence, contraintesPrecedence, &nombreContraintesPrecedence);
 
     graphe = creerGrapheExclusionPrecedence(contraintesExclusion, nombreContraintesExclusion, contraintesPrecedence, nombreContraintesPrecedence);
 
-    colorerGraphe(graphe, stations, &nombreStations);
+    colorerGraphe(graphe, stations, &nombreStations, durees);
     afficherStations(stations, nombreStations, nombre_operations);
 }
 
@@ -176,10 +203,10 @@ int liretempscycle(char *nomFichier) {
         printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
         exit(0);
     }
-    fscanf(fichier, "%d", &temps) ;
+    fscanf(fichier, "%d", &temps);
     printf("temps_cycle %d ", temps);
     fclose(fichier);
-    return temps ;
+    return temps;
 }
 
 int main() {
@@ -188,7 +215,7 @@ int main() {
     char *exclusion = "../exclusions.txt";
     char *temps_cycle = "temps_cycle.txt";
 
-    repartition_station_exclusion_precedence(exclusion, precedences, operation);
+    repartition_station_exclusion_precedence(exclusion, precedences, operation, temps_cycle);
     liretempscycle(temps_cycle);
 
     return 0;
