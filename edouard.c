@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 
+
 int lireNombreOperations(const char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
