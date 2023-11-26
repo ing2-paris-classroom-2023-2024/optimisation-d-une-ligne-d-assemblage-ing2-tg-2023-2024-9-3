@@ -11,7 +11,7 @@ typedef struct t_graphe Graphe;
 struct t_station {
     int *operation;
     int nb_operation;
-    int temps_total;
+    float temps_total;
 };
 typedef struct t_station Station;
 
@@ -31,7 +31,7 @@ int lireNombreOperations(const char *nomFichier) {
     return nombreOperations;
 }
 
-void lireDureeOperations(const char *nomFichier, int durees[], int nombreOperations) {
+void lireDureeOperations(const char *nomFichier, float durees[], int nombreOperations) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
         printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
@@ -39,7 +39,7 @@ void lireDureeOperations(const char *nomFichier, int durees[], int nombreOperati
     }
 
     for (int i = 0; i < nombreOperations; i++) {
-        fscanf(fichier, "%d", &durees[i]);
+        fscanf(fichier, "%f", &durees[i]);
     }
 
     fclose(fichier);
@@ -100,7 +100,7 @@ Graphe creerGrapheExclusionPrecedence(int contraintesExclusion[][2], int nombreC
     return graphe;
 }
 
-void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations, int durees[]) {
+void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations, float durees[]) {
     int *couleurs = (int *)calloc((graphe.nombreSommets + 1), sizeof(int));
     if (couleurs == NULL) {
         printf("Erreur \n");
@@ -147,7 +147,7 @@ void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations, int d
     for (int i = 1; i <= *nombreStations; i++) {
         stations[i].operation = (int *)malloc(graphe.nombreSommets * sizeof(int));
         stations[i].nb_operation = 0;
-        stations[i].temps_total = 0;
+        stations[i].temps_total = 0.0;
     }
 
     for (int sommet = 1; sommet <= graphe.nombreSommets; sommet++) {
@@ -169,15 +169,15 @@ void afficherStations(Station stations[], int nombreStations, int nombreOperatio
             printf(" %d ", stations[i].operation[j]);
         }
         printf("\n");
-        printf("Temps total : %d\n", stations[i].temps_total);
+        printf("Temps total : %f\n", stations[i].temps_total);
     }
 
-    printf("Lorsqu'on considere les contraintes d'exclusion, de precedence et aussi de temps de cycle nous obtenons %d stations \n", nombreStations);
+    printf("Lorsqu'on considere les contraintes d'exclusion, nous obtenons %d stations \n", nombreStations);
 }
 
 void repartition_station_exclusion_precedence(char *fichierExclusion, char *fichierPrecedence, char *operations, char *tempsCycle) {
     int nombre_operations = lireNombreOperations(operations);
-    int durees[nombre_operations];
+    float durees[nombre_operations];
     int contraintesExclusion[nombre_operations][2];
     int contraintesPrecedence[nombre_operations][2];
     int nombreContraintesExclusion, nombreContraintesPrecedence;
