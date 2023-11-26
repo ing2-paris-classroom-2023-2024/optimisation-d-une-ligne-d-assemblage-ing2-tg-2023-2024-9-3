@@ -1,49 +1,69 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
-struct t_graphe {
+
+typedef struct Sommet {
+    int numero;
+    float temps_execution;
+}Sommet;
+
+
+typedef struct t_graphe {
     float **matricePonderation;
-    float *temps;
+    Sommet *sommets;
     int nombreSommets;
-};
-typedef struct t_graphe Graphe_pondere;
+    float *temps;
+}Graphe_pondere;
 
-
-void lireGraphe(const char *nomFichier, Graphe_pondere *graphe) {
+Graphe_pondere lireGraphe(const char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
+    Graphe_pondere graphe;
     if (fichier == NULL) {
         printf("Erreur de l'ouverture du fichier : %s\n", nomFichier);
         exit(0);
     }
-
-    int sommet1, sommet2;
-    graphe->nombreSommets = 0;
+    int sommet1;
+    int sommet2;
+    graphe.nombreSommets = 0;
+    int *sommetsRencontres = NULL;
 
     while (fscanf(fichier, "%d %d", &sommet1, &sommet2) == 2) {
-        if (sommet1 > graphe->nombreSommets) {
-            graphe->nombreSommets = sommet1;
+        if (sommet1 > graphe.nombreSommets) {
+            graphe.nombreSommets = sommet1;
         }
-        if (sommet2 > graphe->nombreSommets) {
-            graphe->nombreSommets = sommet2;
+        if (sommet2 > graphe.nombreSommets) {
+            graphe.nombreSommets = sommet2;
         }
+
+        sommetsRencontres = realloc(sommetsRencontres, (graphe.nombreSommets + 1) * sizeof(int));
+        sommetsRencontres[sommet1] = 1;
+        sommetsRencontres[sommet2] = 1;
     }
 
     rewind(fichier);
 
-    graphe->matricePonderation = (float **)malloc((graphe->nombreSommets + 1) * sizeof(float *));
-    graphe->temps = (float *)malloc((graphe->nombreSommets + 1) * sizeof(float));
+    graphe.matricePonderation = (float **)malloc((graphe.nombreSommets + 1) * sizeof(float *));
+    graphe.sommets = (Sommet *)malloc((graphe.nombreSommets + 1) * sizeof(Sommet));
 
-    for (int i = 0; i <= graphe->nombreSommets; i++) {
-        graphe->matricePonderation[i] = (float *)calloc((graphe->nombreSommets + 1), sizeof(float));
-        graphe->temps[i] = 0.0;
+    for (int i = 0; i <= graphe.nombreSommets; i++) {
+        graphe.matricePonderation[i] = (float *)calloc((graphe.nombreSommets + 1), sizeof(float));
+        graphe.sommets[i].temps_execution = 0.0;  // Initialisation du temps à 0 par défaut
     }
+
 
     while (fscanf(fichier, "%d %d", &sommet1, &sommet2) == 2) {
-        graphe->matricePonderation[sommet1][sommet2] = 1.0;
+        graphe.matricePonderation[sommet1][sommet2] = 1.0;  // Ou tout autre valeur appropriée
+        graphe.sommets[sommet1].numero = sommet1;
+        graphe.sommets[sommet2].numero = sommet2;
     }
 
+    free(sommetsRencontres);
+
     fclose(fichier);
+    return graphe;
 }
+
 
 void lirePonderations(const char *nomFichier, Graphe_pondere *gr) {
     FILE *fichier = fopen(nomFichier, "r");
@@ -55,172 +75,145 @@ void lirePonderations(const char *nomFichier, Graphe_pondere *gr) {
     int sommet;
     float temps;
     while (fscanf(fichier, "%d %f", &sommet, &temps) == 2) {
+
         if (sommet > 0 && sommet <= gr->nombreSommets) {
-            gr->temps[sommet] = temps;
+            gr->sommets[sommet].temps_execution = temps;
         }
     }
 
     fclose(fichier);
 }
 
-void afficherGraphePonderation(Graphe_pondere *gr) {
+void afficherGraphePonderation(Graphe_pondere *graphe) {
     printf("Graphe avec ponderations :\n");
-    for (int i = 1; i <= gr->nombreSommets; i++) {
-        for (int j = 1; j <= gr->nombreSommets; j++) {
-            if (gr->matricePonderation[i][j] != 0.0) {
-                printf("(%d -> %d) Temps : %.2f\n", i, j, gr->temps[i]);
-            }
-        }
-    }
-}
-
-void initialiserGraphe(Graphe_pondere *graphe) {
-    graphe->matricePonderation = NULL;
-    graphe->temps = NULL;
-    graphe->nombreSommets = 0;
-}
-
-
-
-int trouverSommetInitial(Graphe_pondere *graphe) {
-    int *inDegrees = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
-
     for (int i = 1; i <= graphe->nombreSommets; i++) {
         for (int j = 1; j <= graphe->nombreSommets; j++) {
             if (graphe->matricePonderation[i][j] != 0.0) {
-                inDegrees[j]++;
+                printf("(%d -> %d) Temps : %.2f\n", i, j, graphe->sommets[i].temps_execution);
             }
         }
     }
-
-    int sommetInitial = -1;
-    for (int i = 1; i <= graphe->nombreSommets; i++) {
-        if (inDegrees[i] == 0) {
-            sommetInitial = i;
-            break;
-        }
-    }
-
-    free(inDegrees);
-    return sommetInitial;
 }
 
-struct CheminMaximal {
-    int sommet;
-    float poids;
-    int *chemin;
-};
-struct CheminMaximal dijkstra(Graphe_pondere *graphe, int sommetInitial, int sommetFinal) {
-    float *distances = (float *)malloc((graphe->nombreSommets + 1) * sizeof(float));
-    int *predecesseurs = (int *)malloc((graphe->nombreSommets + 1) * sizeof(int));
-
-    for (int i = 1; i <= graphe->nombreSommets; i++) {
-        distances[i] = -1;  // Initialize distances to -1
-        predecesseurs[i] = -1;
+void libererGraphe(Graphe_pondere *graphe) {
+    for (int i = 0; i <= graphe->nombreSommets; i++) {
+        free(graphe->matricePonderation[i]);
     }
+    free(graphe->matricePonderation);
+    free(graphe->sommets);
+}
 
-    distances[sommetInitial] = 0;
 
-    // Algorithme de Dijkstra
-    while (1) {
-        int sommetActuel = -1;
-        float maxDistance = -1;
-        for (int i = 1; i <= graphe->nombreSommets; i++) {
-            if (distances[i] > maxDistance && distances[i] != -1) {
-                maxDistance = distances[i];
-                sommetActuel = i;
+void compterPredecesseurs(Graphe_pondere *graphe, int *zeroPredecesseur, int *deuxPredecesseurs) {
+    for (int i = 1; i <= graphe->nombreSommets; i++) {
+        int compteur = 0;
+        for (int j = 1; j <= graphe->nombreSommets; j++) {
+            if (graphe->matricePonderation[j][i] != 0.0) {
+                compteur++;
             }
         }
-
-        if (sommetActuel == -1 || sommetActuel == sommetFinal) {
-            break;
+        if (compteur == 0) {
+            zeroPredecesseur[i] = 1;
+        } else if (compteur == 2) {
+            deuxPredecesseurs[i] = 1;
         }
+    }
+}
 
-        for (int voisin = 1; voisin <= graphe->nombreSommets; voisin++) {
-            if (graphe->matricePonderation[sommetActuel][voisin] != 0.0) {
-                float nouvelleDistance = distances[sommetActuel] + graphe->temps[voisin];
-                if (nouvelleDistance > distances[voisin]) {
-                    distances[voisin] = nouvelleDistance;
-                    predecesseurs[voisin] = sommetActuel;
+void afficherSommetsPredecesseurs(Graphe_pondere *graphe) {
+    int *zeroPredecesseur = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
+    int *deuxPredecesseurs = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
+
+    compterPredecesseurs(graphe, zeroPredecesseur, deuxPredecesseurs);
+
+    printf("Sommets sans prédécesseur : ");
+    for (int i = 1; i <= graphe->nombreSommets; i++) {
+        if (zeroPredecesseur[i] == 1) {
+            printf("%d ", i);
+        }
+    }
+    printf("\n");
+
+    printf("Sommets avec uniquement deux prédécesseurs : ");
+    for (int i = 1; i <= graphe->nombreSommets; i++) {
+        if (deuxPredecesseurs[i] == 1) {
+            printf("%d ", i);
+        }
+    }
+    printf("\n");
+
+    free(zeroPredecesseur);
+    free(deuxPredecesseurs);
+}
+int liretempscycle(char *nomFichier) {
+    int temps;
+    FILE *fichier = fopen(nomFichier, "r");
+    if (fichier == NULL) {
+        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
+        exit(0);
+    }
+    fscanf(fichier, "%d", &temps) ;
+    printf("temps_cycle %d ", temps);
+    fclose(fichier);
+    return temps ;
+}
+void rangerDansStationsAvecDuree(Graphe_pondere *graphe) {
+    bool *estPlace = (bool *)calloc((graphe->nombreSommets + 1), sizeof(bool));
+
+    int station = 1;
+    float dureeActuelle = 0.0;
+
+    printf("Stations :\n");
+
+    while (1) {
+        bool sommetPlace = false;
+        float dureeStationActuelle = 0.0;
+
+        for (int sommet = 1; sommet <= graphe->nombreSommets; sommet++) {
+            if (!estPlace[sommet]) {
+                bool peutEtrePlace = true;
+                for (int voisin = 1; voisin <= graphe->nombreSommets; voisin++) {
+                    if (graphe->matricePonderation[voisin][sommet] != 0.0 && !estPlace[voisin]) {
+                        peutEtrePlace = false;
+                        break;
+                    }
+                }
+
+                if (peutEtrePlace && dureeActuelle + graphe->temps[sommet] <= 10.0) {
+                    printf("Station %d: Sommet %d (Temps %.2f)\n", station, sommet, graphe->temps[sommet]);
+
+                    dureeActuelle += graphe->temps[sommet];
+                    dureeStationActuelle += graphe->temps[sommet];
+                    estPlace[sommet] = true;
+                    sommetPlace = true;
+
+                    if (dureeActuelle >= 10.0) {
+                        station++;
+                        dureeActuelle = 0.0;
+                    }
                 }
             }
         }
 
-        distances[sommetActuel] = -1;
+        if (!sommetPlace) {
+            break;
+        }
+
+        if (dureeStationActuelle == 0.0) {
+            break;
+        }
     }
 
-    struct CheminMaximal chemin;
-    chemin.sommet = sommetFinal;
-    chemin.poids = distances[sommetFinal];
-
-    int nombreSommetsChemin = 0;
-    int sommet = sommetFinal;
-    while (sommet != -1) {
-        sommet = predecesseurs[sommet];
-        nombreSommetsChemin++;
-    }
-
-    chemin.chemin = (int *)malloc((nombreSommetsChemin + 1) * sizeof(int));
-    sommet = sommetFinal;
-    for (int i = nombreSommetsChemin - 1; i >= 0; i--) {
-        chemin.chemin[i] = sommet;
-        sommet = predecesseurs[sommet];
-    }
-    chemin.chemin[nombreSommetsChemin] = -1;
-
-    free(distances);
-    free(predecesseurs);
-
-    return chemin;
+    free(estPlace);
 }
 
-
 int main() {
-    Graphe_pondere graphe;
-    initialiserGraphe(&graphe);
-
-    lireGraphe("../precedences.txt", &graphe);
+    Graphe_pondere graphe = lireGraphe("../precedences.txt");
     lirePonderations("../operations.txt", &graphe);
     afficherGraphePonderation(&graphe);
-    // Trouver le sommet initial
-    int sommetInitial = trouverSommetInitial(&graphe);
-    printf("Sommet initial : %d\n", sommetInitial);
-    printf("Sommets avec deux predecesseurs :\n");
-    for (int i = 1; i <= graphe.nombreSommets; i++) {
-        int predecesseurs = 0;
-        for (int j = 1; j <= graphe.nombreSommets; j++) {
-            if (graphe.matricePonderation[j][i] != 0.0) {
-                predecesseurs++;
-            }
-        }
-        if (predecesseurs == 2) {
-            printf("%d\n", i);
-        }
-    }
-
-    printf("\nChemins de poids minimal :\n");
-    for (int i = 1; i <= graphe.nombreSommets; i++) {
-        int predecesseurs = 0;
-        for (int j = 1; j <= graphe.nombreSommets; j++) {
-            if (graphe.matricePonderation[j][i] != 0.0) {
-                predecesseurs++;
-            }
-        }
-        if (predecesseurs == 2) {
-            struct CheminMaximal chemin = dijkstra(&graphe, sommetInitial, i);
-            printf("Chemin maximal pour le sommet %d : ", i);
-
-            int j = 0;
-            while (chemin.chemin[j] != -1) {
-                printf("%d ", chemin.chemin[j]);
-                j++;
-            }
-
-            printf(" (Poids : %.2f)\n", chemin.poids);
-            free(chemin.chemin);
-        }
-    }
-
+    afficherSommetsPredecesseurs(&graphe);
+    libererGraphe(&graphe);
 
     return 0;
 }
+
