@@ -350,7 +350,6 @@ int main() {
     calculerCheminsMaximaux(&graphe);
     t_graphe newgraphe=reinitialiserGraphe(&graphe);
     afficherGraphePonderation(&newgraphe);
-    //liretempscycle(fichierTempsDeCycle);
     libererGraphe(&graphe);
 
     return 0;
