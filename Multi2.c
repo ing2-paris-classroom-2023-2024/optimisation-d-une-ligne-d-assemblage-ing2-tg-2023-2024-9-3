@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "edouard.h"
+#include "Multi2.h"
 
 int lire_operation(nom_sommet **sommets, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
@@ -30,6 +30,18 @@ int lireFichierExclusions(Exclusion *exclusions, char *nomFichier) {
         numExclusions++;
     }
     return numExclusions;
+}
+
+int lireTempsCycle(char *nomFichier) {
+    FILE *fichier = fopen(nomFichier, "r");
+    if (fichier == NULL) {
+        printf("Erreur d'ouverture temps_cycle.txt");
+        exit(1);
+    }
+    int tempsCycle;
+    fscanf(fichier, "%d", &tempsCycle);
+    fclose(fichier);
+    return tempsCycle;
 }
 
 int trouvernom(nom_sommet *sommets, int numero_sommet, char *nom_sommet) {
