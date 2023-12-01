@@ -1,178 +1,157 @@
-//
-// Created by edoua on 14/11/2023.
-//
-
-#include "edouard.h"
-
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "Multi2.h"
 
-
-
-int lireNombreOperations(const char *nomFichier) {
+int lire_operation(nom_sommet **sommets, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
-        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
-        exit(0);
+        printf("Erreur d'ouverture operation.txt");
+        exit(1);
     }
-    int nombreOperations = 0;
-    char ligne[100]; // Assurez-vous que cette taille est suffisante pour contenir une ligne complète
-
-    // Lecture du fichier ligne par ligne
+    int numSommets = 0;
+    char ligne[50];
     while (fgets(ligne, sizeof(ligne), fichier) != NULL) {
-        nombreOperations++;
+        *sommets = (nom_sommet *)realloc(*sommets, (numSommets + 1) * sizeof(nom_sommet));
+        sscanf(ligne, "%s", (*sommets)[numSommets].nom);
+        numSommets++;
     }
-    fclose(fichier);
-    return nombreOperations;
-
+    return numSommets;
 }
 
-void lireContraintes(const char *nomFichier, int contraintes[][2], int *nombreContraintes) {
+int lireFichierExclusions(Exclusion *exclusions, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
-        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
-        exit(0);
+        printf("Erreur d'ouverture exclusion.txt");
+        exit(1);
     }
-    *nombreContraintes = 0;
-    while (fscanf(fichier, "%d %d", &contraintes[*nombreContraintes][0], &contraintes[*nombreContraintes][1]) == 2) {
-        (*nombreContraintes)++;
+    int numExclusions = 0;
+    while (fscanf(fichier, "%s %s", exclusions[numExclusions].sommet1, exclusions[numExclusions].sommet2) == 2) {
+        numExclusions++;
     }
+    return numExclusions;
+}
+
+int lireTempsCycle(char *nomFichier) {
+    FILE *fichier = fopen(nomFichier, "r");
+    if (fichier == NULL) {
+        printf("Erreur d'ouverture temps_cycle.txt");
+        exit(1);
+    }
+    int tempsCycle;
+    fscanf(fichier, "%d", &tempsCycle);
     fclose(fichier);
+    return tempsCycle;
 }
 
-Graphe creerGraphe(int contraintes[][2], int nombreContraintes) {
-    Graphe graphe;
-    graphe.nombreSommets = 0;
-
-    for (int i = 0; i < nombreContraintes; i++) {
-        if (contraintes[i][0] > graphe.nombreSommets) {
-            graphe.nombreSommets = contraintes[i][0];
-        }
-        if (contraintes[i][1] > graphe.nombreSommets) {
-            graphe.nombreSommets = contraintes[i][1];
+int trouvernom(nom_sommet *sommets, int numero_sommet, char *nom_sommet) {
+    for (int i = 0; i < numero_sommet; i++) {
+        if (strcmp(sommets[i].nom, nom_sommet) == 0) {
+            return i;
         }
     }
-
-    graphe.matriceAdjacence = (int **)malloc((graphe.nombreSommets + 1) * sizeof(int *));
-    if (graphe.matriceAdjacence == NULL) {
-        printf("Erreur \n");
-        exit(0);
-    }
-
-    for (int i = 0; i <= graphe.nombreSommets; i++) {
-        graphe.matriceAdjacence[i] = (int *)calloc((graphe.nombreSommets + 1), sizeof(int));
-        if (graphe.matriceAdjacence[i] == NULL) {
-            printf("Erreur \n");
-            exit(0);
-        }
-    }
-    for (int i = 0; i < nombreContraintes; i++) {
-        graphe.matriceAdjacence[contraintes[i][0]][contraintes[i][1]] = 1;
-        graphe.matriceAdjacence[contraintes[i][1]][contraintes[i][0]] = 1;
-    }
-    return graphe;
+    return -1;
 }
 
-
-// Coloration d'un graphe grâce à l'algorithme naif
-void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations) {
-    int *couleurs = (int *)calloc((graphe.nombreSommets + 1), sizeof(int));
-    if (couleurs == NULL) {
-        printf( "Erreur \n");
-        exit(0);
+void initialiserGraphe(Graphe *graphe, int numSommets) {
+    graphe->numSommets = numSommets;
+    graphe->matriceAdjacence = (int **)malloc(numSommets * sizeof(int *));
+    for (int i = 0; i < numSommets; i++) {
+        graphe->matriceAdjacence[i] = (int *)malloc(numSommets * sizeof(int));
+        for (int j = 0; j < numSommets; j++) {
+            graphe->matriceAdjacence[i][j] = 0;
+        }
     }
-    for (int i = 1; i <= graphe.nombreSommets; i++) {
-        couleurs[i] = 0;
-    }
-    for (int sommet = 1; sommet <= graphe.nombreSommets; sommet++) {
-        int couleurDisponible = 1;
+    graphe->sommets = (nom_sommet *)malloc(numSommets * sizeof(nom_sommet));
+    graphe->station = (int *)malloc(numSommets * sizeof(int));
+}
 
-        for (int voisin = 1; voisin <= graphe.nombreSommets; voisin++) {
-            if (graphe.matriceAdjacence[sommet][voisin] && couleurs[voisin] != 0) {
-                couleurDisponible = 0;
-                break;
+void ajouterArc(Graphe *graphe, int sommet1, int sommet2) {
+    graphe->matriceAdjacence[sommet1][sommet2] = 1;
+    graphe->matriceAdjacence[sommet2][sommet1] = 1;
+}
+
+void afficherGraphe(Graphe *graphe) {
+    printf("Graphe:\n");
+    for (int i = 0; i < graphe->numSommets; i++) {
+        printf("Sommet %s est relie a : ", graphe->sommets[i].nom);
+        for (int j = 0; j < graphe->numSommets; j++) {
+            if (graphe->matriceAdjacence[i][j] == 1) {
+                printf("%s ", graphe->sommets[j].nom);
             }
-        }
-        if (couleurDisponible) {
-            couleurs[sommet] = 1;
-        } else {
-            for (int couleur = 2; couleur <= *nombreStations + 1; couleur++) {
-                int couleurLibre = 1;
-                for (int voisin = 1; voisin <= graphe.nombreSommets; voisin++) {
-                    if (graphe.matriceAdjacence[sommet][voisin] && couleurs[voisin] == couleur) {
-                        couleurLibre = 0;
-                        break;
-                    }
-                }
-                if (couleurLibre) {
-                    couleurs[sommet] = couleur;
-                    break;
-                }
-            }
-        }
-        if (couleurs[sommet] > *nombreStations) {
-            *nombreStations = couleurs[sommet];
-        }
-    }
-    for (int i = 1; i <= *nombreStations; i++) {
-        stations[i].operation = (int *)malloc(graphe.nombreSommets * sizeof(int));
-        stations[i].nb_operation = 0;
-    }
-    // Ajout de chaque opération à la station associée
-    for (int sommet = 1; sommet <= graphe.nombreSommets; sommet++) {
-        stations[couleurs[sommet]].operation[stations[couleurs[sommet]].nb_operation++] = sommet;
-    }
-    free(couleurs);
-}
-
-void afficherStations(Station stations[], int nombreStations, int nombreOperations) {
-    printf("Nombre total d'operations : %d\n", nombreOperations);
-    printf("Repartition des stations :\n");
-    for (int i = 1; i <= nombreStations; i++) {
-        printf("Station %d : \n", i);
-        printf("Operations : ");
-        for (int j = 0; j < stations[i].nb_operation; j++) {
-            printf(" %d ", stations[i].operation[j]);
         }
         printf("\n");
     }
-
-    printf("Lorsqu'on considere que les contraintes d'exclusion, nous obtenons %d stations \n", nombreStations);
 }
-
-void repartition_station_exclusion(char *fichier, char*operations) {
-    int nombre_operations = lireNombreOperations(operations);
-    int contraintes[nombre_operations][2];
-    int nombreContraintes;
-    Graphe graphe;
-    Station stations[nombre_operations];
-    int nombreStations = 0;
-    lireContraintes(fichier, contraintes, &nombreContraintes);
-    graphe = creerGraphe(contraintes, nombreContraintes);
-    colorerGraphe(graphe, stations, &nombreStations);
-    afficherStations(stations, nombreStations, nombre_operations);
-}
-int liretempscycle(char *nomFichier) {
-    int temps;
-    FILE *fichier = fopen(nomFichier, "r");
-    if (fichier == NULL) {
-        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
-        exit(0);
+void colorerGraphe(Graphe *graphe) {
+    for (int i = 0; i < graphe->numSommets; i++) {
+        graphe->station[i] = -1;
     }
-    fscanf(fichier, "%d", &temps) ;
-    printf("temps_cycle %d ", temps);
-    fclose(fichier);
-    return temps ;
+    for (int i = 0; i < graphe->numSommets; i++) {
+        int couleurutilisee[graphe->numSommets];
+        for (int j = 0; j < graphe->numSommets; j++) {
+            couleurutilisee[j] = 0;
+        }
+        for (int j = 0; j < graphe->numSommets; j++) {
+            if (graphe->matriceAdjacence[i][j] == 1 && graphe->station[j] != -1) {
+                couleurutilisee[graphe->station[j]] = 1;
+            }
+        }
+        int couleurDisponible;
+        for (couleurDisponible = 0; couleurDisponible < graphe->numSommets; couleurDisponible++) {
+            if (couleurutilisee[couleurDisponible] == 0) {
+                break;
+            }
+        }
+        graphe->station[i] = couleurDisponible;
+    }
+}
+void affichagestation(Graphe *graphe) {
+    printf("Affichage des stations:\n");
+    int nombreStations = 0;
+    for (int i = 0; i < graphe->numSommets; i++) {
+        if (graphe->station[i] > nombreStations) {
+            nombreStations = graphe->station[i];
+        }
+    }
+    for (int s = 0; s <= nombreStations; s++) {
+        printf("Station %d contient les operations : \n", s + 1);
+        for (int i = 0; i < graphe->numSommets; i++) {
+            if (graphe->station[i] == s) {
+                printf("%s ", graphe->sommets[i].nom);
+            }
+        }
+        printf("\n");
+    }
+}
+
+
+Graphe graphe(char *fichier_operation, char *fichier_exclusion) {
+    Graphe graphe;
+    nom_sommet *sommets = NULL;
+    Exclusion exclusions[100];
+    int numSommets = lire_operation(&sommets, fichier_operation);
+    initialiserGraphe(&graphe, numSommets);
+    for (int i = 0; i < numSommets; i++) {
+        strcpy(graphe.sommets[i].nom, sommets[i].nom);
+    }
+    int numExclusions = lireFichierExclusions(exclusions, fichier_exclusion);
+    for (int i = 0; i < numExclusions; i++) {
+        int indiceSommet1 = trouvernom(sommets, numSommets, exclusions[i].sommet1);
+        int indiceSommet2 = trouvernom(sommets, numSommets, exclusions[i].sommet2);
+        if (indiceSommet1 != -1 && indiceSommet2 != -1) {
+            ajouterArc(&graphe, indiceSommet1, indiceSommet2);
+        }
+    }
+    colorerGraphe(&graphe);
+    affichagestation(&graphe);
+    //afficherGraphe(&graphe);
+    return graphe;
 }
 
 int main() {
-
-    Graphe graphe ;
     char *operation = "../operations.txt";
-    char *precedences = "../precedences.txt";
     char *exclusion = "../exclusions.txt";
-    char *temps_cycle = "../temps_cycle.txt";
-    repartition_station_exclusion(exclusion, operation);
-    liretempscycle(temps_cycle);
+    graphe(operation, exclusion);
     return 0;
 }
