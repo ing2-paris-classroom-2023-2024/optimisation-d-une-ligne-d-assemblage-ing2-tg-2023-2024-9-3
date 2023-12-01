@@ -12,7 +12,6 @@ typedef struct Graphe_pondere {
     float **matricePonderation;
     Sommet *sommets;
     int nombreSommets;
-    float *temps;
 }t_graphe;
 
 struct CheminMaximal {
@@ -20,10 +19,12 @@ struct CheminMaximal {
     float poids;
     int *chemin;
 };
-typedef struct Edge {
-    int start;
-    int end;
-} Edge;
+typedef struct arete {
+    int debut;
+    int fin;
+} t_arete;
+
+
 t_graphe lireGraphe(const char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     t_graphe graphe;
@@ -161,68 +162,18 @@ void afficherSommetsPredecesseurs(t_graphe *graphe) {
     free(deuxPredecesseurs);
 }
 
-int liretempscycle(const char *nomFichier) {
-    int temps;
+float liretempscycle(const char *nomFichier) {
+    float temps;
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
         printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
         exit(0);
     }
-    fscanf(fichier, "%d", &temps) ;
-    printf("temps_cycle %d ", temps);
+    fscanf(fichier, "%f", &temps) ;
+    printf("temps_cycle %f ", temps);
     fclose(fichier);
     return temps ;
 }
-void rangerDansStationsAvecDuree(t_graphe *graphe) {
-    bool *estPlace = (bool *)calloc((graphe->nombreSommets + 1), sizeof(bool));
-
-    int station = 1;
-    float dureeActuelle = 0.0;
-
-    printf("Stations :\n");
-
-    while (1) {
-        bool sommetPlace = false;
-        float dureeStationActuelle = 0.0;
-
-        for (int sommet = 1; sommet <= graphe->nombreSommets; sommet++) {
-            if (!estPlace[sommet]) {
-                bool peutEtrePlace = true;
-                for (int voisin = 1; voisin <= graphe->nombreSommets; voisin++) {
-                    if (graphe->matricePonderation[voisin][sommet] != 0.0 && !estPlace[voisin]) {
-                        peutEtrePlace = false;
-                        break;
-                    }
-                }
-
-                if (peutEtrePlace && dureeActuelle + graphe->temps[sommet] <= 10.0) {
-                    printf("Station %d: Sommet %d (Temps %.2f)\n", station, sommet, graphe->temps[sommet]);
-
-                    dureeActuelle += graphe->temps[sommet];
-                    dureeStationActuelle += graphe->temps[sommet];
-                    estPlace[sommet] = true;
-                    sommetPlace = true;
-
-                    if (dureeActuelle >= 10.0) {
-                        station++;
-                        dureeActuelle = 0.0;
-                    }
-                }
-            }
-        }
-
-        if (!sommetPlace) {
-            break;
-        }
-
-        if (dureeStationActuelle == 0.0) {
-            break;
-        }
-    }
-
-    free(estPlace);
-}
-
 
 struct CheminMaximal cheminpoidsmax(t_graphe *graphe, int sommetInitial, int sommetFinal) {
     float *distances = (float *)malloc((graphe->nombreSommets + 1) * sizeof(float));
@@ -278,7 +229,7 @@ struct CheminMaximal cheminpoidsmax(t_graphe *graphe, int sommetInitial, int som
     while (sommet != -1) {
         int predecesseur = predecesseurs[sommet];
         if (predecesseur != -1) {
-            cheminMax.poids += graphe->sommets[predecesseur].temps_execution;  // Add the weight of the edge
+            cheminMax.poids += graphe->sommets[predecesseur].temps_execution;
         }
         sommet = predecesseur;
         nombreSommetsCheminMax++;
@@ -323,7 +274,6 @@ void calculerCheminsMaximaux(t_graphe *graphe) {
                 }
             }
 
-            // Afficher le chemin de poids maximal pour ce sommet
             printf("Chemin de poids maximal pour le sommet %d :\n", sommet);
             printf("Poids total : %.2f\n", cheminMaxi.poids);
             printf("Chemin : ");
@@ -346,12 +296,11 @@ void sauvegarderDernieresAretes(const char *nomFichier, t_graphe *graphe) {
         exit(0);
     }
 
-    Edge *dernieresAretes = (Edge *)malloc((graphe->nombreSommets + 1) * sizeof(Edge));
+    t_arete *dernieresAretes = (t_arete *)malloc((graphe->nombreSommets + 1) * sizeof(t_arete));
 
-    // Initialiser toutes les arêtes à -1
     for (int i = 1; i <= graphe->nombreSommets; i++) {
-        dernieresAretes[i].start = -1;
-        dernieresAretes[i].end = -1;
+        dernieresAretes[i].debut = -1;
+        dernieresAretes[i].fin = -1;
     }
 
     for (int sommet = 1; sommet <= graphe->nombreSommets; sommet++) {
@@ -360,18 +309,17 @@ void sauvegarderDernieresAretes(const char *nomFichier, t_graphe *graphe) {
             int dernierSommet = -1;
             for (int i = 0; cheminMax.chemin[i] != -1; i++) {
                 if (dernierSommet != -1) {
-                    dernieresAretes[cheminMax.chemin[i]].start = dernierSommet;
-                    dernieresAretes[cheminMax.chemin[i]].end = cheminMax.chemin[i];
+                    dernieresAretes[cheminMax.chemin[i]].debut = dernierSommet;
+                    dernieresAretes[cheminMax.chemin[i]].fin = cheminMax.chemin[i];
                 }
                 dernierSommet = cheminMax.chemin[i];
             }
         }
     }
 
-    // Écrire les dernières arêtes dans le fichier
     for (int i = 1; i <= graphe->nombreSommets; i++) {
-        if (dernieresAretes[i].start != -1 && dernieresAretes[i].end != -1) {
-            fprintf(fichier, "%d %d\n", dernieresAretes[i].start, dernieresAretes[i].end);
+        if (dernieresAretes[i].debut != -1 && dernieresAretes[i].fin != -1) {
+            fprintf(fichier, "%d %d\n", dernieresAretes[i].debut, dernieresAretes[i].fin);
         }
     }
 
@@ -379,7 +327,53 @@ void sauvegarderDernieresAretes(const char *nomFichier, t_graphe *graphe) {
     fclose(fichier);
 }
 
-int main() {
+void triDansStations(t_graphe *graphe, float tempsCycle) {
+    int *couleurs = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
+    float tempsStation = 0.0;
+    int stationCourante = 1;
+    int *file = (int *)malloc((graphe->nombreSommets + 1) * sizeof(int));
+    int debutFile = 0;
+    int finFile = 0;
+
+    file[finFile++] = 1;
+    couleurs[1] = 1;
+
+    while (debutFile != finFile) {
+        int sommetActuel = file[debutFile++];
+        couleurs[sommetActuel] = 2;
+
+        tempsStation += graphe->sommets[sommetActuel-1].temps_execution;
+        printf("Sommet %d ajoute a la station %d\n", sommetActuel, stationCourante);
+        bool tousTraites = true;
+        for (int i = 1; i <= graphe->nombreSommets; ++i) {
+            if (couleurs[i] != 2) {
+                tousTraites = false;
+                break;
+            }
+        }
+        if (tousTraites)
+            break;
+
+
+        if (tempsStation >tempsCycle) {
+            tempsStation = 0;
+            stationCourante++;
+        }
+
+        for (int successeur = 1; successeur <= graphe->nombreSommets; successeur++) {
+            if (graphe->matricePonderation[sommetActuel][successeur] != 0.0 && couleurs[successeur] == 0) {
+                file[finFile++] = successeur;
+                couleurs[successeur] = 1;
+            }
+        }
+    }
+
+    free(couleurs);
+    free(file);
+}
+
+
+int main(){
     const char *fichierGraphe = "../precedences.txt";
     const char *fichierPonderation = "../operations.txt";
     const char *nouveauFichier="../nouveau_fichier.txt";
@@ -391,11 +385,13 @@ int main() {
     afficherGraphePonderation(&graphe);
     calculerCheminsMaximaux(&graphe);
     sauvegarderDernieresAretes(nouveauFichier, &graphe);
-    t_graphe nouveaugraphe =lireGraphe(nouveauFichier);
-    lirePonderations(fichierPonderation,&nouveaugraphe);
+    t_graphe nouveaugraphe = lireGraphe(nouveauFichier);
+    lirePonderations(fichierPonderation, &nouveaugraphe);
     afficherGraphePonderation(&nouveaugraphe);
-    liretempscycle(fichierTempsCycle);
+    float tempsCycle = liretempscycle(fichierTempsCycle);
+    triDansStations(&nouveaugraphe, tempsCycle);
     libererGraphe(&graphe);
+    libererGraphe(&nouveaugraphe);
 
     return 0;
 }
