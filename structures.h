@@ -11,6 +11,7 @@ struct t_operation {
 };
 typedef struct t_operation Operation;
 
+
 struct CheminMaximal {
     int sommet;
     float poids;

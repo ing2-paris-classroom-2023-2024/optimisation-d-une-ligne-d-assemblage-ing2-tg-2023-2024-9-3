@@ -10,4 +10,5 @@ int main() {
     repartition_exclusion(operation, exclusion);
     repartition_precedence_tmpscycle(precedences,operation,nouveaufichier,temps_cycle);
     return 0;
+
 }

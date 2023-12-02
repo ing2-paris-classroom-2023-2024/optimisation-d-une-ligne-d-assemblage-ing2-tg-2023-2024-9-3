@@ -342,6 +342,7 @@ void triDansStations(Graphe *graphe, float tempsCycle) {
         }
     }
 
+
     free(couleurs);
     free(file);
 }
