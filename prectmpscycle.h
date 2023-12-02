@@ -1,16 +1,6 @@
-//
-// Created by chloe on 02/12/2023.
-//
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include "structures.h"
-
-t_graphe lireGraphe(const char *nomFichier) {
+Graphe lireGraphe(const char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
-    t_graphe graphe;
+    Graphe graphe;
     if (fichier == NULL) {
         printf("Erreur de l'ouverture du fichier : %s\n", nomFichier);
         exit(0);
@@ -54,7 +44,7 @@ t_graphe lireGraphe(const char *nomFichier) {
 }
 
 
-void lirePonderations(const char *nomFichier, t_graphe *gr) {
+void lirePonderations(const char *nomFichier, Graphe *gr) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
         printf("Erreur de l'ouverture du fichier : %s\n", nomFichier);
@@ -73,7 +63,7 @@ void lirePonderations(const char *nomFichier, t_graphe *gr) {
     fclose(fichier);
 }
 
-void afficherGraphePonderation(t_graphe *graphe) {
+void afficherGraphePonderation(Graphe *graphe) {
     // printf("g oriente pondere :\n");
     for (int i = 1; i <= graphe->nombreSommets; i++) {
         for (int j = 1; j <= graphe->nombreSommets; j++) {
@@ -83,14 +73,14 @@ void afficherGraphePonderation(t_graphe *graphe) {
         }
     }
 }
-void afficherSommetsAvecPonderation(t_graphe *graphe) {
+void afficherSommetsAvecPonderation(Graphe *graphe) {
     // printf("Sommets avec leur ponderation :\n");
     for (int i = 1; i <= graphe->nombreSommets; i++) {
         // printf("t_sommet %d : Temps d'execution %.2f\n", graphe->sommets[i].numero, graphe->sommets[i].temps_execution);
     }
 }
 
-void libererGraphe(t_graphe *graphe) {
+void libererGraphe(Graphe *graphe) {
     for (int i = 0; i <= graphe->nombreSommets; i++) {
         free(graphe->matricePonderation[i]);
     }
@@ -99,7 +89,7 @@ void libererGraphe(t_graphe *graphe) {
 }
 
 
-void compterPredecesseurs(t_graphe *graphe, int *zeroPredecesseur, int *deuxPredecesseurs) {
+void compterPredecesseurs(Graphe *graphe, int *zeroPredecesseur, int *deuxPredecesseurs) {
     for (int i = 1; i <= graphe->nombreSommets; i++) {
         int compteur = 0;
         for (int j = 1; j <= graphe->nombreSommets; j++) {
@@ -115,7 +105,7 @@ void compterPredecesseurs(t_graphe *graphe, int *zeroPredecesseur, int *deuxPred
     }
 }
 
-void afficherSommetsPredecesseurs(t_graphe *graphe) {
+void afficherSommetsPredecesseurs(Graphe *graphe) {
     int *zeroPredecesseur = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
     int *deuxPredecesseurs = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
 
@@ -153,12 +143,12 @@ float liretempscycle(const char *nomFichier) {
         exit(0);
     }
     fscanf(fichier, "%f", &temps) ;
-    printf("temps_cycle %f ", temps);
+    printf("temps_cycle %f \n", temps);
     fclose(fichier);
     return temps ;
 }
 
-struct CheminMaximal cheminpoidsmax(t_graphe *graphe, int sommetInitial, int sommetFinal) {
+struct CheminMaximal cheminpoidsmax(Graphe *graphe, int sommetInitial, int sommetFinal) {
     float *distances = (float *)malloc((graphe->nombreSommets + 1) * sizeof(float));
     int *predecesseurs = (int *)malloc((graphe->nombreSommets + 1) * sizeof(int));
 
@@ -234,7 +224,7 @@ struct CheminMaximal cheminpoidsmax(t_graphe *graphe, int sommetInitial, int som
     return cheminMax;
 }
 
-void calculerCheminsMaximaux(t_graphe *graphe) {
+void calculerCheminsMaximaux(Graphe *graphe) {
     int *zeroPredecesseur = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
     int *deuxPredecesseurs = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
 
@@ -272,10 +262,10 @@ void calculerCheminsMaximaux(t_graphe *graphe) {
 }
 
 
-void sauvegarderDernieresAretes(const char *nomFichier, t_graphe *graphe) {
+void sauvegarderDernieresAretes(const char *nomFichier, Graphe *graphe) {
     FILE *fichier = fopen(nomFichier, "w");
     if (fichier == NULL) {
-        printf("Erreur lors de la création du fichier : %s\n", nomFichier);
+        printf("Erreur lors de la crÃ©ation du fichier : %s\n", nomFichier);
         exit(0);
     }
 
@@ -310,7 +300,7 @@ void sauvegarderDernieresAretes(const char *nomFichier, t_graphe *graphe) {
     fclose(fichier);
 }
 
-void triDansStations(t_graphe *graphe, float tempsCycle) {
+int * triDansStations(Graphe *graphe, float tempsCycle) {
     int *couleurs = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
     float tempsStation = 0.0;
     int stationCourante = 1;
@@ -321,6 +311,11 @@ void triDansStations(t_graphe *graphe, float tempsCycle) {
     file[finFile++] = 1;
     couleurs[1] = 1;
 
+    // Tableau pour stocker les sommets dans chaque station
+    int stations[graphe->nombreSommets][graphe->nombreSommets];
+    int nbSommetsDansStation[graphe->nombreSommets];
+    memset(nbSommetsDansStation, 0, sizeof(nbSommetsDansStation));
+
     while (debutFile != finFile) {
         int sommetActuel = file[debutFile++];
         couleurs[sommetActuel] = 2;
@@ -330,10 +325,11 @@ void triDansStations(t_graphe *graphe, float tempsCycle) {
             stationCourante++;
         }
 
-        printf("Sommet %d ajoute a la station %d\n", sommetActuel, stationCourante);
+        // Ajouter le sommet à la station courante
+        stations[stationCourante - 1][nbSommetsDansStation[stationCourante - 1]] = sommetActuel;
+        nbSommetsDansStation[stationCourante - 1]++;
+
         tempsStation += graphe->sommets[sommetActuel].temps_execution;
-
-
 
         for (int successeur = 1; successeur <= graphe->nombreSommets; successeur++) {
             if (graphe->matricePonderation[sommetActuel][successeur] != 0.0 && couleurs[successeur] == 0) {
@@ -343,19 +339,30 @@ void triDansStations(t_graphe *graphe, float tempsCycle) {
         }
     }
 
+    // Affichage des sommets dans chaque station
+    for (int i = 0; i < stationCourante; i++) {
+        printf("Station %d : ", i + 1);
+        for (int j = 0; j < nbSommetsDansStation[i]; j++) {
+            printf("%d ", stations[i][j]);
+        }
+        printf("\n");
+    }
+
     free(couleurs);
     free(file);
+    return stations;
 }
 
 
-int precedence_tmpscycle(const char*fichierGraphe,const char*fichierPonderation,const char*nouveauFichier,const char*fichierTempsCycle){
-    t_graphe graphe = lireGraphe(fichierGraphe);
+
+int precedence_tmpscycle(char*fichierGraphe,char*fichierPonderation,char*nouveauFichier,char*fichierTempsCycle){
+    Graphe graphe = lireGraphe(fichierGraphe);
     lirePonderations(fichierPonderation, &graphe);
     afficherSommetsAvecPonderation(&graphe);
     afficherGraphePonderation(&graphe);
     calculerCheminsMaximaux(&graphe);
     sauvegarderDernieresAretes(nouveauFichier, &graphe);
-    t_graphe nouveaugraphe = lireGraphe(nouveauFichier);
+    Graphe nouveaugraphe = lireGraphe(nouveauFichier);
     lirePonderations(fichierPonderation, &nouveaugraphe);
     afficherGraphePonderation(&nouveaugraphe);
     float tempsCycle = liretempscycle(fichierTempsCycle);
@@ -364,3 +371,7 @@ int precedence_tmpscycle(const char*fichierGraphe,const char*fichierPonderation,
     libererGraphe(&nouveaugraphe);
 }
 
+void repartition_precedence_tmpscycle(char*fichier_precedences,char*fichier_operations,char*nouveauFichier,char*fichier_TempsCycle){
+    printf("\n\n\t\t\t\t\t\t\tRepartition selon contrainte precedence et temps de cycle\n");
+    precedence_tmpscycle(fichier_precedences,fichier_operations,nouveauFichier,fichier_TempsCycle);
+}

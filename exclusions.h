@@ -4,13 +4,10 @@
 
 #ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_EXCLUSIONS_H
 #define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_EXCLUSIONS_H
+#include "structures.h"
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include "structures.h"
-
-
-
 int lire_operation(t_sommet **sommets, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
@@ -27,7 +24,7 @@ int lire_operation(t_sommet **sommets, char *nomFichier) {
     return numSommets;
 }
 
-int lireFichierExclusions(t_exclusion *exclusions, char *nomFichier) {
+int lireFichierExclusions(exclusion *exclusions, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
         printf("Erreur d'ouverture exclusion.txt");
@@ -49,7 +46,7 @@ int trouvernom(t_sommet *sommets, int numero_sommet, char *nom_sommet) {
     return -1;
 }
 
-void initialiserGraphe(t_graphe *graphe, int numSommets) {
+void initialiserGraphe(Graphe *graphe, int numSommets) {
     graphe->numSommets = numSommets;
     graphe->matriceAdjacence = (int **)malloc(numSommets * sizeof(int *));
     for (int i = 0; i < numSommets; i++) {
@@ -62,15 +59,15 @@ void initialiserGraphe(t_graphe *graphe, int numSommets) {
     graphe->station = (int *)malloc(numSommets * sizeof(int));
 }
 
-void ajouterArc(t_graphe *graphe, int sommet1, int sommet2) {
+void ajouterArc(Graphe *graphe, int sommet1, int sommet2) {
     graphe->matriceAdjacence[sommet1][sommet2] = 1;
     graphe->matriceAdjacence[sommet2][sommet1] = 1;
 }
 
-void afficherGraphe(t_graphe *graphe) {
-    printf("t_graphe:\n");
+void afficherGraphe(Graphe *graphe) {
+    printf("Graphe:\n");
     for (int i = 0; i < graphe->numSommets; i++) {
-        printf("t_sommet %s est relie a : ", graphe->sommets[i].nom);
+        printf("Sommet %s est relie a : ", graphe->sommets[i].nom);
         for (int j = 0; j < graphe->numSommets; j++) {
             if (graphe->matriceAdjacence[i][j] == 1) {
                 printf("%s ", graphe->sommets[j].nom);
@@ -79,7 +76,7 @@ void afficherGraphe(t_graphe *graphe) {
         printf("\n");
     }
 }
-void colorerGraphe(t_graphe *graphe) {
+void colorerGraphe(Graphe *graphe) {
     for (int i = 0; i < graphe->numSommets; i++) {
         graphe->station[i] = -1;
     }
@@ -102,30 +99,44 @@ void colorerGraphe(t_graphe *graphe) {
         graphe->station[i] = couleurDisponible;
     }
 }
-void affichagestation_exclusion(t_graphe *graphe) {
-    //printf("Affichage des stations uniquement contrainte d'exclusion :\n");
+int* affichagestation_exclusion(Graphe *graphe) {
+    printf("\n\n\t\t\t\t\t\t\tAffichage des stations uniquement contrainte d'exclusion :\n");
     int nombreStations = 0;
     for (int i = 0; i < graphe->numSommets; i++) {
         if (graphe->station[i] > nombreStations) {
             nombreStations = graphe->station[i];
         }
     }
+
+    // Tableau pour stocker les sommets dans chaque station
+    int stations[graphe->numSommets][graphe->numSommets];
+    int nbSommetsDansStation[graphe->numSommets];
+    memset(nbSommetsDansStation, 0, sizeof(nbSommetsDansStation));
+
+    // Parcours des sommets pour les placer dans les stations correspondantes
     for (int s = 0; s <= nombreStations; s++) {
-        printf("Station %d contient les operations : \n", s + 1);
         for (int i = 0; i < graphe->numSommets; i++) {
             if (graphe->station[i] == s) {
-                printf("%s ", graphe->sommets[i].nom);
+                stations[s][nbSommetsDansStation[s]] = i; // Stockage du sommet dans la station
+                nbSommetsDansStation[s]++;
             }
+        }
+    }
+
+    // Affichage des sommets dans chaque station
+    for (int i = 0; i <= nombreStations; i++) {
+        printf("Station %d contient les operations : \n", i + 1);
+        for (int j = 0; j < nbSommetsDansStation[i]; j++) {
+            printf("%s ", graphe->sommets[stations[i][j]].nom);
         }
         printf("\n");
     }
-}
-
-
+    return stations;
+}   //afficherGraphe(&graphe);
 void repartition_exclusion(char *fichier_operation, char *fichier_exclusion) {
-    t_graphe graphe;
+    Graphe graphe;
     t_sommet *sommets = NULL;
-    t_exclusion exclusions[100];
+    exclusion exclusions[100];
     int numSommets = lire_operation(&sommets, fichier_operation);
     initialiserGraphe(&graphe, numSommets);
     for (int i = 0; i < numSommets; i++) {
@@ -142,5 +153,5 @@ void repartition_exclusion(char *fichier_operation, char *fichier_exclusion) {
     colorerGraphe(&graphe);
     affichagestation_exclusion(&graphe);
     //afficherGraphe(&graphe);
-
+}
 #endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_EXCLUSIONS_H

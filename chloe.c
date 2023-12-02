@@ -1,17 +1,13 @@
-#include <stdio.h>
-#include "exclusions.h"
-#include "prectmpscycle.h"
+#include "multi.h"
 
-int main(){
+int main() {
     char *operation = "../operations.txt";
     char *exclusion = "../exclusions.txt";
-    printf("\t\t\t\t\t\t\tRepartition selon contrainte d'exclusion\n");
+    char *temps_cycle = "../temps_cycle.txt";
+    char *precedences = "../precedence.txt";
+    char *nouveaufichier="../nouveau_fichier.txt";
     repartition_exclusion(operation, exclusion);
-    const char *fichierGraphe = "../precedences.txt";
-    const char *fichierPonderation = "../operations.txt";
-    const char *nouveauFichier="../nouveau_fichier.txt";
-    const char *fichierTempsCycle="../temps_cyle.txt";
-    printf("\n\n\t\t\t\t\t\t\tRepartition selon contrainte precedence et temps de cycle\n");
-    precedence_tmpscycle(fichierGraphe,fichierPonderation,nouveauFichier,fichierTempsCycle);
+    repartition_precedence_tmpscycle(precedences,operation,nouveaufichier,temps_cycle);
+    affichagefinal(temps_cycle);
     return 0;
 }
