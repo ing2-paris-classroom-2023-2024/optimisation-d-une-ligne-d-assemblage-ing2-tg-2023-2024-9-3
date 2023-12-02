@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 //#include "edouard.h"
-
 struct t_nomSommet {
     char nom[50];
     float tempsExecution;

@@ -9,7 +9,6 @@ struct t_nomSommet {
     float tempsExecution;
 };
 typedef struct t_nomSommet nom_sommet;
-
 struct t_exclusion {
     char sommet1[50];
     char sommet2[50];
