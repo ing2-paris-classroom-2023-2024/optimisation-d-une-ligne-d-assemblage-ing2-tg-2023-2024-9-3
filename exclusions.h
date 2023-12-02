@@ -1,9 +1,9 @@
 //
-// Created by edoua on 02/12/2023.
+// Created by chloe on 02/12/2023.
 //
 
-#ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_EXCLUSION_H
-#define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_EXCLUSION_H
+#ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_EXCLUSIONS_H
+#define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_EXCLUSIONS_H
 #include "structures.h"
 #include <string.h>
 #include <stdio.h>
@@ -99,7 +99,7 @@ void colorerGraphe(Graphe *graphe) {
         graphe->station[i] = couleurDisponible;
     }
 }
-void affichagestation_exclusion(Graphe *graphe) {
+int* affichagestation_exclusion(Graphe *graphe) {
     printf("\n\n\t\t\t\t\t\t\tAffichage des stations uniquement contrainte d'exclusion :\n");
     int nombreStations = 0;
     for (int i = 0; i < graphe->numSommets; i++) {
@@ -107,17 +107,32 @@ void affichagestation_exclusion(Graphe *graphe) {
             nombreStations = graphe->station[i];
         }
     }
+
+    // Tableau pour stocker les sommets dans chaque station
+    int stations[graphe->numSommets][graphe->numSommets];
+    int nbSommetsDansStation[graphe->numSommets];
+    memset(nbSommetsDansStation, 0, sizeof(nbSommetsDansStation));
+
+    // Parcours des sommets pour les placer dans les stations correspondantes
     for (int s = 0; s <= nombreStations; s++) {
-        printf("Station %d contient les operations : \n", s + 1);
         for (int i = 0; i < graphe->numSommets; i++) {
             if (graphe->station[i] == s) {
-                printf("%s ", graphe->sommets[i].nom);
+                stations[s][nbSommetsDansStation[s]] = i; // Stockage du sommet dans la station
+                nbSommetsDansStation[s]++;
             }
+        }
+    }
+
+    // Affichage des sommets dans chaque station
+    for (int i = 0; i <= nombreStations; i++) {
+        printf("Station %d contient les operations : \n", i + 1);
+        for (int j = 0; j < nbSommetsDansStation[i]; j++) {
+            printf("%s ", graphe->sommets[stations[i][j]].nom);
         }
         printf("\n");
     }
+    return stations;
 }
-
 
 void repartition_exclusion(char *fichier_operation, char *fichier_exclusion) {
     Graphe graphe;
@@ -142,4 +157,4 @@ void repartition_exclusion(char *fichier_operation, char *fichier_exclusion) {
 }
 
 
-#endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_EXCLUSION_H
+#endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_EXCLUSIONS_H

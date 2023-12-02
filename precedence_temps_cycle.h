@@ -1,13 +1,8 @@
-//
-// Created by edoua on 02/12/2023.
-//
-
-#ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_PRECEDENCE_TEMPS_CYCLE_H
-#define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_PRECEDENCE_TEMPS_CYCLE_H
 #include "structures.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 Graphe lireGraphe(const char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     Graphe graphe;
@@ -275,7 +270,7 @@ void calculerCheminsMaximaux(Graphe *graphe) {
 void sauvegarderDernieresAretes(const char *nomFichier, Graphe *graphe) {
     FILE *fichier = fopen(nomFichier, "w");
     if (fichier == NULL) {
-        printf("Erreur lors de la création du fichier : %s\n", nomFichier);
+        printf("Erreur lors de la crÃ©ation du fichier : %s\n", nomFichier);
         exit(0);
     }
 
@@ -310,7 +305,7 @@ void sauvegarderDernieresAretes(const char *nomFichier, Graphe *graphe) {
     fclose(fichier);
 }
 
-void triDansStations(Graphe *graphe, float tempsCycle) {
+int * triDansStations(Graphe *graphe, float tempsCycle) {
     int *couleurs = (int *)calloc((graphe->nombreSommets + 1), sizeof(int));
     float tempsStation = 0.0;
     int stationCourante = 1;
@@ -321,6 +316,11 @@ void triDansStations(Graphe *graphe, float tempsCycle) {
     file[finFile++] = 1;
     couleurs[1] = 1;
 
+    // Tableau pour stocker les sommets dans chaque station
+    int stations[graphe->nombreSommets][graphe->nombreSommets];
+    int nbSommetsDansStation[graphe->nombreSommets];
+    memset(nbSommetsDansStation, 0, sizeof(nbSommetsDansStation));
+
     while (debutFile != finFile) {
         int sommetActuel = file[debutFile++];
         couleurs[sommetActuel] = 2;
@@ -330,9 +330,11 @@ void triDansStations(Graphe *graphe, float tempsCycle) {
             stationCourante++;
         }
 
-        printf("Sommet %d ajoute a la station %d\n", sommetActuel, stationCourante);
-        tempsStation += graphe->sommets[sommetActuel].temps_execution;
+        // Ajouter le sommet à la station courante
+        stations[stationCourante - 1][nbSommetsDansStation[stationCourante - 1]] = sommetActuel;
+        nbSommetsDansStation[stationCourante - 1]++;
 
+        tempsStation += graphe->sommets[sommetActuel].temps_execution;
 
         for (int successeur = 1; successeur <= graphe->nombreSommets; successeur++) {
             if (graphe->matricePonderation[sommetActuel][successeur] != 0.0 && couleurs[successeur] == 0) {
@@ -342,10 +344,20 @@ void triDansStations(Graphe *graphe, float tempsCycle) {
         }
     }
 
+    // Affichage des sommets dans chaque station
+    for (int i = 0; i < stationCourante; i++) {
+        printf("Station %d : ", i + 1);
+        for (int j = 0; j < nbSommetsDansStation[i]; j++) {
+            printf("%d ", stations[i][j]);
+        }
+        printf("\n");
+    }
 
     free(couleurs);
     free(file);
+    return stations;
 }
+
 
 
 int precedence_tmpscycle(char*fichierGraphe,char*fichierPonderation,char*nouveauFichier,char*fichierTempsCycle){
@@ -368,4 +380,3 @@ void repartition_precedence_tmpscycle(char*fichier_precedences,char*fichier_oper
     printf("\n\n\t\t\t\t\t\t\tRepartition selon contrainte precedence et temps de cycle\n");
     precedence_tmpscycle(fichier_precedences,fichier_operations,nouveauFichier,fichier_TempsCycle);
 }
-#endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_PRECEDENCE_TEMPS_CYCLE_H

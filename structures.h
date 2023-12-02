@@ -1,16 +1,15 @@
 //
-// Created by edoua on 02/12/2023.
+// Created by chloe on 02/12/2023.
 //
 
-#ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_STRUCTURES_H
-#define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_STRUCTURES_H
-// Structure pour représenter un sommet d'opération
+#ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_STRUCTURES_H
+#define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_STRUCTURES_H
+
 struct t_operation {
     int nom;
-    float duree; // Ajouter d'autres informations si nécessaire
+    float duree;
 };
 typedef struct t_operation Operation;
-
 
 struct CheminMaximal {
     int sommet;
@@ -56,4 +55,4 @@ typedef struct arete {
 } t_arete;
 
 
-#endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_STRUCTURES_H
+#endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_STRUCTURES_H
