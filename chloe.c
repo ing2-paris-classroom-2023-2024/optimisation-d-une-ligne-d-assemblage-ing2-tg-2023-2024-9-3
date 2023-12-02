@@ -342,8 +342,9 @@ void triDansStations(t_graphe *graphe, float tempsCycle) {
         int sommetActuel = file[debutFile++];
         couleurs[sommetActuel] = 2;
 
-        tempsStation += graphe->sommets[sommetActuel-1].temps_execution;
+        tempsStation += graphe->sommets[sommetActuel+1].temps_execution;
         printf("Sommet %d ajoute a la station %d\n", sommetActuel, stationCourante);
+
         bool tousTraites = true;
         for (int i = 1; i <= graphe->nombreSommets; ++i) {
             if (couleurs[i] != 2) {
@@ -354,18 +355,21 @@ void triDansStations(t_graphe *graphe, float tempsCycle) {
         if (tousTraites)
             break;
 
-
-        if (tempsStation >tempsCycle) {
-            tempsStation = 0;
-            stationCourante++;
-        }
-
         for (int successeur = 1; successeur <= graphe->nombreSommets; successeur++) {
             if (graphe->matricePonderation[sommetActuel][successeur] != 0.0 && couleurs[successeur] == 0) {
                 file[finFile++] = successeur;
                 couleurs[successeur] = 1;
             }
         }
+
+        if (tempsStation >= tempsCycle) {
+            tempsStation = 0.0;
+            // tempsStation += graphe->sommets[sommetActuel-1].temps_execution;
+
+            stationCourante++;
+        }
+
+
     }
 
     free(couleurs);
