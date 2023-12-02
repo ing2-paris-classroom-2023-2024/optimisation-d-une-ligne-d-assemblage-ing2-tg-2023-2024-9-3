@@ -3,7 +3,7 @@
 #include <string.h>
 #include "edouard.h"
 
-int lire_operation(nom_sommet **sommets, char *nomFichier) {
+int lire_operation(sommet **sommets, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
         printf("Erreur d'ouverture operation.txt");
@@ -12,14 +12,14 @@ int lire_operation(nom_sommet **sommets, char *nomFichier) {
     int numSommets = 0;
     char ligne[50];
     while (fgets(ligne, sizeof(ligne), fichier) != NULL) {
-        *sommets = (nom_sommet *)realloc(*sommets, (numSommets + 1) * sizeof(nom_sommet));
+        *sommets = (sommet *)realloc(*sommets, (numSommets + 1) * sizeof(sommet));
         sscanf(ligne, "%s", (*sommets)[numSommets].nom);
         numSommets++;
     }
     return numSommets;
 }
 
-int lireFichierExclusions(Exclusion *exclusions, char *nomFichier) {
+int lireFichierExclusions(exclusion *exclusions, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
         printf("Erreur d'ouverture exclusion.txt");
@@ -32,7 +32,7 @@ int lireFichierExclusions(Exclusion *exclusions, char *nomFichier) {
     return numExclusions;
 }
 
-int trouvernom(nom_sommet *sommets, int numero_sommet, char *nom_sommet) {
+int trouvernom(sommet *sommets, int numero_sommet, char *nom_sommet) {
     for (int i = 0; i < numero_sommet; i++) {
         if (strcmp(sommets[i].nom, nom_sommet) == 0) {
             return i;
@@ -50,7 +50,7 @@ void initialiserGraphe(Graphe *graphe, int numSommets) {
             graphe->matriceAdjacence[i][j] = 0;
         }
     }
-    graphe->sommets = (nom_sommet *)malloc(numSommets * sizeof(nom_sommet));
+    graphe->sommets = (sommet *)malloc(numSommets * sizeof(sommet));
     graphe->station = (int *)malloc(numSommets * sizeof(int));
 }
 
@@ -94,8 +94,8 @@ void colorerGraphe(Graphe *graphe) {
         graphe->station[i] = couleurDisponible;
     }
 }
-void affichagestation(Graphe *graphe) {
-    printf("Affichage des stations:\n");
+void affichagestation_exclusion(Graphe *graphe) {
+    printf("Affichage des stations uniquement contrainte d'exclusion :\n");
     int nombreStations = 0;
     for (int i = 0; i < graphe->numSommets; i++) {
         if (graphe->station[i] > nombreStations) {
@@ -114,10 +114,10 @@ void affichagestation(Graphe *graphe) {
 }
 
 
-Graphe graphe(char *fichier_operation, char *fichier_exclusion) {
+void repartition_exclusion(char *fichier_operation, char *fichier_exclusion) {
     Graphe graphe;
-    nom_sommet *sommets = NULL;
-    Exclusion exclusions[100];
+    sommet *sommets = NULL;
+    exclusion exclusions[100];
     int numSommets = lire_operation(&sommets, fichier_operation);
     initialiserGraphe(&graphe, numSommets);
     for (int i = 0; i < numSommets; i++) {
@@ -132,14 +132,13 @@ Graphe graphe(char *fichier_operation, char *fichier_exclusion) {
         }
     }
     colorerGraphe(&graphe);
-    affichagestation(&graphe);
+    affichagestation_exclusion(&graphe);
     //afficherGraphe(&graphe);
-    return graphe;
 }
 
 int main() {
     char *operation = "../operations.txt";
     char *exclusion = "../exclusions.txt";
-    graphe(operation, exclusion);
-    return 0;
+    repartition_exclusion(operation, exclusion);
+   return 0;
 }
