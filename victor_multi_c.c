@@ -18,7 +18,7 @@ typedef struct t_station Station;
 int lireNombreOperations(const char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
-        printf("Erreur de l'ouverture du fichier : %s\n", nomFichier);
+        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
         exit(0);
     }
     int nombreOperations = 0;
@@ -34,7 +34,7 @@ int lireNombreOperations(const char *nomFichier) {
 void lireDureeOperations(const char *nomFichier, float durees[], int nombreOperations) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
-        printf("Erreur de l'ouverture du fichier : %s\n", nomFichier);
+        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
         exit(0);
     }
 
@@ -48,7 +48,7 @@ void lireDureeOperations(const char *nomFichier, float durees[], int nombreOpera
 void lireContraintes(const char *nomFichier, int contraintes[][2], int *nombreContraintes) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
-        printf("Erreur de l'ouverture du fichier : %s\n", nomFichier);
+        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
         exit(0);
     }
     *nombreContraintes = 0;
@@ -111,12 +111,6 @@ void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations, float
         couleurs[i] = 0;
     }
 
-    for (int i = 1; i <= *nombreStations; i++) {
-        stations[i].operation = NULL;
-        stations[i].nb_operation = 0;
-        stations[i].temps_total = 0.0;
-    }
-
     for (int sommet = 1; sommet <= graphe.nombreSommets; sommet++) {
         int couleurDisponible = 1;
 
@@ -130,9 +124,8 @@ void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations, float
         if (couleurDisponible) {
             couleurs[sommet] = 1;
         } else {
-            int couleurLibre = 1;
-            for (int couleur = 1; couleur <= *nombreStations; couleur++) {
-                couleurLibre = 1;
+            for (int couleur = 2; couleur <= *nombreStations + 1; couleur++) {
+                int couleurLibre = 1;
                 for (int voisin = 1; voisin <= graphe.nombreSommets; voisin++) {
                     if (graphe.matriceAdjacenceExclusion[sommet][voisin] && couleurs[voisin] == couleur) {
                         couleurLibre = 0;
@@ -151,31 +144,15 @@ void colorerGraphe(Graphe graphe, Station stations[], int *nombreStations, float
         }
     }
 
-    // Impressions pour aider au débogage
     for (int i = 1; i <= *nombreStations; i++) {
-        printf("Station %d : \n", i);
-        printf("Operations : ");
-        for (int j = 0; j < stations[i].nb_operation; j++) {
-            printf(" %d ", stations[i].operation[j]);
-        }
-        printf("\n");
-        printf("Temps total : %f\n", stations[i].temps_total);
-    }
-
-    for (int sommet = 1; sommet <= graphe.nombreSommets; sommet++) {
-        int couleur = couleurs[sommet];
-        stations[couleur].nb_operation++;
-        stations[couleur].temps_total += durees[sommet - 1];
-    }
-
-    for (int i = 1; i <= *nombreStations; i++) {
-        stations[i].operation = (int *)malloc(stations[i].nb_operation * sizeof(int));
+        stations[i].operation = (int *)malloc(graphe.nombreSommets * sizeof(int));
         stations[i].nb_operation = 0;
+        stations[i].temps_total = 0.0;
     }
 
     for (int sommet = 1; sommet <= graphe.nombreSommets; sommet++) {
-        int couleur = couleurs[sommet];
-        stations[couleur].operation[stations[couleur].nb_operation++] = sommet;
+        stations[couleurs[sommet]].operation[stations[couleurs[sommet]].nb_operation++] = sommet;
+        stations[couleurs[sommet]].temps_total += durees[sommet - 1];
     }
 
     free(couleurs);
@@ -223,7 +200,7 @@ int liretempscycle(char *nomFichier) {
     int temps;
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
-        printf("Erreur de l'ouverture du fichier : %s\n", nomFichier);
+        printf("Erreur de l'ouverture du fichier :  %s\n", nomFichier);
         exit(0);
     }
     fscanf(fichier, "%d", &temps);
