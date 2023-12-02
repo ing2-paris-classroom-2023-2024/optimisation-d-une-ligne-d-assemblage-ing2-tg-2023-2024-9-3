@@ -172,7 +172,7 @@ void afficherStations(Station stations[], int nombreStations, int nombreOperatio
         printf("Temps total : %f\n", stations[i].temps_total);
     }
 
-    printf("Lorsqu'on considere les contraintes d'exclusion, nous obtenons %d stations \n", nombreStations);
+    printf("nous obtenons %d stations \n", nombreStations);
 }
 
 void repartition_station_exclusion_precedence(char *fichierExclusion, char *fichierPrecedence, char *operations, char *tempsCycle) {
@@ -211,9 +211,9 @@ int liretempscycle(char *nomFichier) {
 
 int main() {
     char *operation = "../operations.txt";
-    char *precedences = "../precedences.txt";
+    char *precedences = "../precedence.txt";
     char *exclusion = "../exclusions.txt";
-    char *temps_cycle = "temps_cycle.txt";
+    char *temps_cycle = "../temps_cycle.txt";
 
     repartition_station_exclusion_precedence(exclusion, precedences, operation, temps_cycle);
     liretempscycle(temps_cycle);
