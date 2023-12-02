@@ -1,27 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "edouard.h"
-struct t_nomSommet {
-    char nom[50];
-    float tempsExecution;
-};
-typedef struct t_nomSommet nom_sommet;
+#include "Multi2.h"
 
-struct t_exclusion {
-    char sommet1[50];
-    char sommet2[50];
-};
-typedef struct t_exclusion Exclusion;
-
-struct t_graphe {
-    int numSommets;
-    int **matriceAdjacence;
-    nom_sommet *sommets;
-    int *station;
-    float *temps
-};
-typedef struct t_graphe Graphe;
 
 int lire_operation(Graphe* graphe, nom_sommet **sommets, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
@@ -40,15 +21,6 @@ int lire_operation(Graphe* graphe, nom_sommet **sommets, char *nomFichier) {
     //fclose(fichier);
     return numSommets;
 }
-
-void lirePond(Graphe *graphe){
-    printf("Sommets avec leur ponderation :\n");
-    for (int i = 0; i < graphe->numSommets; i++) {
-        printf("Sommet %s : Temps d'execution %.2f\n", graphe->sommets[i].nom, graphe->sommets[i].tempsExecution);
-    }
-}
-
-
 
 int lireFichierExclusions(Exclusion *exclusions, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
@@ -144,28 +116,44 @@ void colorerGraphe(Graphe *graphe) {
         graphe->station[i] = couleurDisponible;
     }
 }
-void affichagestation(Graphe *graphe) {
+void affichagestation(Graphe *graphe, int tempsCycle) {
     printf("Affichage des stations:\n");
-    int nombreStations = 0;
+    int nombreStations = 1;
+
     for (int i = 0; i < graphe->numSommets; i++) {
         if (graphe->station[i] > nombreStations) {
             nombreStations = graphe->station[i];
         }
     }
+
     for (int s = 0; s <= nombreStations; s++) {
-        printf("Station %d contient les operations : \n", s + 1);
+        printf("Station %d contient les operations : ", s + 1);
+        float tempsTotalStation = 0.0;
+
         for (int i = 0; i < graphe->numSommets; i++) {
             if (graphe->station[i] == s) {
+
+                if (tempsTotalStation + graphe->sommets[i].tempsExecution > tempsCycle) {
+                    printf("\nPassage a une nouvelle station\n");
+                    tempsTotalStation = 0.0;
+                    s++;
+                }
+
                 printf("%s (%.2f) ", graphe->sommets[i].nom, graphe->sommets[i].tempsExecution);
+                tempsTotalStation += graphe->sommets[i].tempsExecution;
             }
         }
-        printf("\n");
+
+        printf("\nTemps total d'execution de la station %d : %.2f\n\n", s + 1, tempsTotalStation);
     }
 }
 
 
 
-Graphe graphe(char *fichier_operation, char *fichier_exclusion) {
+
+
+
+Graphe graphe(char *fichier_operation, char *fichier_exclusion, int tempsCycle) {
     Graphe graphe;
     nom_sommet *sommets = NULL;
     Exclusion exclusions[100];
@@ -173,8 +161,8 @@ Graphe graphe(char *fichier_operation, char *fichier_exclusion) {
     initialiserGraphe(&graphe, numSommets);
     for (int i = 0; i < numSommets; i++) {
         strcpy(graphe.sommets[i].nom, sommets[i].nom);
-        graphe.sommets[i].tempsExecution = sommets[i].tempsExecution;  // Mettez à jour les temps d'exécution
-        graphe.temps[i] = sommets[i].tempsExecution;  // Stockage des temps d'exécution
+        graphe.sommets[i].tempsExecution = sommets[i].tempsExecution;
+        graphe.temps[i] = sommets[i].tempsExecution;
     }
     int numExclusions = lireFichierExclusions(exclusions, fichier_exclusion);
     for (int i = 0; i < numExclusions; i++) {
@@ -185,8 +173,7 @@ Graphe graphe(char *fichier_operation, char *fichier_exclusion) {
         }
     }
     colorerGraphe(&graphe);
-    affichagestation(&graphe);
-    lirePond(&graphe);
+    affichagestation(&graphe, tempsCycle);
     //afficherGraphe(&graphe);
     return graphe;
 }
@@ -198,6 +185,6 @@ int main() {
     int tempsCycle;
     tempsCycle = lireTempsCycle(temps_cycle);
     printf("temps cycle : %d\n", tempsCycle);
-    graphe(operation, exclusion);
+    graphe(operation, exclusion, tempsCycle);
     return 0;
 }
