@@ -76,94 +76,45 @@ void afficherGraphe(Graphe *graphe) {
         printf("\n");
     }
 }
-
+void colorerGraphe(Graphe *graphe) {
+    for (int i = 0; i < graphe->numSommets; i++) {
+        graphe->station[i] = -1;
+    }
+    for (int i = 0; i < graphe->numSommets; i++) {
+        int couleurutilisee[graphe->numSommets];
+        for (int j = 0; j < graphe->numSommets; j++) {
+            couleurutilisee[j] = 0;
+        }
+        for (int j = 0; j < graphe->numSommets; j++) {
+            if (graphe->matriceAdjacence[i][j] == 1 && graphe->station[j] != -1) {
+                couleurutilisee[graphe->station[j]] = 1;
+            }
+        }
+        int couleurDisponible;
+        for (couleurDisponible = 0; couleurDisponible < graphe->numSommets; couleurDisponible++) {
+            if (couleurutilisee[couleurDisponible] == 0) {
+                break;
+            }
+        }
+        graphe->station[i] = couleurDisponible;
+    }
+}
 void affichagestation_exclusion(Graphe *graphe) {
-    printf("\n\t\t\t\t\t\t\tAffichage des stations uniquement contrainte d'exclusion \n\n");
+    printf("\n\n\t\t\t\t\t\t\tAffichage des stations uniquement contrainte d'exclusion :\n");
     int nombreStations = 0;
     for (int i = 0; i < graphe->numSommets; i++) {
         if (graphe->station[i] > nombreStations) {
             nombreStations = graphe->station[i];
         }
     }
-    for (int s = 1; s <= nombreStations; s++) {
-        printf("Station %d contient les operations : \n", s);
+    for (int s = 0; s <= nombreStations; s++) {
+        printf("Station %d contient les operations : \n", s + 1);
         for (int i = 0; i < graphe->numSommets; i++) {
             if (graphe->station[i] == s) {
                 printf("%s ", graphe->sommets[i].nom);
             }
         }
         printf("\n");
-    }
-}
-void calculerDegres(Graphe *graphe, int *degres) {
-    for (int i = 0; i < graphe->numSommets; i++) {
-        degres[i] = 0;
-        for (int j = 0; j < graphe->numSommets; j++) {
-            if (graphe->matriceAdjacence[i][j] == 1) {
-                degres[i]++;
-            }
-        }
-    }
-}
-
-void echangerSommets(t_sommet *a, t_sommet *b, int *degreA, int *degreB) {
-    t_sommet tempSommet = *a;
-    *a = *b;
-    *b = tempSommet;
-    int tempDegre = *degreA;
-    *degreA = *degreB;
-    *degreB = tempDegre;
-}
-
-t_sommet* trie_a_bulle_degres(t_sommet *sommets, int *degres, int numSommets) {
-    // Créer une copie du tableau sommets
-    t_sommet *sommetsCopie = (t_sommet *)malloc(numSommets * sizeof(t_sommet));
-    for (int i = 0; i < numSommets; i++) {
-        sommetsCopie[i] = sommets[i];
-    }
-    for (int i = 0; i < numSommets - 1; i++) {
-        for (int j = 0; j < numSommets - i - 1; j++) {
-            if (degres[j] < degres[j + 1]) {
-                echangerSommets(&sommetsCopie[j], &sommetsCopie[j + 1], &degres[j], &degres[j + 1]);
-            }
-        }
-    }
-
-    return sommetsCopie;
-}
-
-void welsh_powel_coloration(Graphe *graphe, t_sommet *sommetsTrieesParDegre) {
-    int couleur = 1;
-
-    for (int i = 0; i < graphe->numSommets; i++) {
-        int sommetActuel = trouvernom(sommetsTrieesParDegre, graphe->numSommets, graphe->sommets[i].nom);
-        graphe->station[sommetActuel] = -1;
-        int couleurUtilisee[graphe->numSommets];
-        for (int j = 0; j < graphe->numSommets; j++) {
-            couleurUtilisee[j] = 0;
-        }
-        if (graphe->degres[sommetActuel] == 0) {
-            graphe->station[sommetActuel] = couleur++;
-            continue;  // Passer au sommet suivant
-        }
-
-        // Parcourir les voisins du sommet dans l'ordre du tableau trié
-        for (int j = 0; j < graphe->numSommets; j++) {
-            int voisin = trouvernom(sommetsTrieesParDegre, graphe->numSommets, graphe->sommets[j].nom);
-            if (graphe->matriceAdjacence[sommetActuel][voisin] == 1 && graphe->station[voisin] != -1) {
-                couleurUtilisee[graphe->station[voisin]] = 1;
-            }
-        }
-        int couleurDisponible;
-        for (couleurDisponible = 1; couleurDisponible <= graphe->numSommets; couleurDisponible++) {
-            if (couleurUtilisee[couleurDisponible] == 0) {
-                break;
-            }
-        }
-        graphe->station[sommetActuel] = couleurDisponible;
-        if (couleurDisponible >= couleur) {
-            couleur = couleurDisponible + 1;
-        }
     }
 }
 
@@ -185,11 +136,7 @@ void repartition_exclusion(char *fichier_operation, char *fichier_exclusion) {
             ajouterArc(&graphe, indiceSommet1, indiceSommet2);
         }
     }
-    int degres[numSommets];
-    calculerDegres(&graphe, degres);
-    t_sommet *sommetsTries = trie_a_bulle_degres(graphe.sommets, degres, numSommets);
-    welsh_powel_coloration(&graphe, sommetsTries);
-    free(sommetsTries);
+    colorerGraphe(&graphe);
     affichagestation_exclusion(&graphe);
     //afficherGraphe(&graphe);
 }

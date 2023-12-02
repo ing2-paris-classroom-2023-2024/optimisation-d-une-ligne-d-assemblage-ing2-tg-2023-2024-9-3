@@ -211,9 +211,9 @@ int liretempscycle(char *nomFichier) {
 
 int main() {
     char *operation = "../operations.txt";
-    char *precedences = "../precedences.txt";
+    char *precedences = "../precedence.txt";
     char *exclusion = "../exclusions.txt";
-    char *temps_cycle = "temps_cycle.txt";
+    char *temps_cycle = "../temps_cycle.txt";
 
     repartition_station_exclusion_precedence(exclusion, precedences, operation, temps_cycle);
     liretempscycle(temps_cycle);
