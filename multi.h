@@ -260,3 +260,4 @@ void multicontraintePREDEX(){
     ranger_sommets("fichierResultats.txt");
 }
 #endif //PROJET_TG_USINE__PRECEDENCES_EXCLUSIONS_H
+//

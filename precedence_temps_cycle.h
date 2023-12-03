@@ -417,3 +417,4 @@ void repartition_precedence_tmpscycle(char*fichier_precedences,char*fichier_oper
     precedence_tmpscycle(fichier_precedences,fichier_operations,nouveauFichier,fichier_TempsCycle);
 }
 #endif //PROJET_TG_USINE__PRECEDENCES_TEMPS_CYCLE_H
+//

@@ -220,3 +220,4 @@ void repartition_exclusion(char *fichier_operation, char *fichier_exclusion) {
 
 
 #endif //PROJET_TG_USINE__EXCLUSIONS_H
+//

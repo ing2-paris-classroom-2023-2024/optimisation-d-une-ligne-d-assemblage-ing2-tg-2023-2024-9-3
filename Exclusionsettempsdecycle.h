@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "structures.h"
+#include "precedence_temps_cycle.h"
 
 //lecture fichie operarion
 int Lire_Operations(t_sommet **sommets, char *nomFichier) {
@@ -262,3 +263,4 @@ void repartition_exclusion_temps(char*fichierOperation,char*fichierExclusion,cha
     RepartitionExclusionTempsCycle(fichierOperation,fichierExclusion,tempsCycle);
 }
 #endif //PROJET_TG_USINE__EXCLUSIONS_TEMPSCYCLE_H
+//
