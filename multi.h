@@ -253,6 +253,7 @@ void ranger_sommets(char *fichier_entree) {
 }
 
 void multicontraintePREDEX(){
+
     printf("\t\t\t\t\t\t\tRepartition selon contrainte precedence et exclusions\n\n\n");
     afficherSommetsDecouverts("decouverteSommets.txt");
     completerDecouverteAvecCouleur();
