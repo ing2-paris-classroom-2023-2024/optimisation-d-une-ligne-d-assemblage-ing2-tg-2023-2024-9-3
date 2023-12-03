@@ -27,6 +27,7 @@ struct Sommet {
     char nom[50];
     int numero;
     float temps_execution;
+    int couleur;
 };
 typedef struct Sommet t_sommet;
 // Structure pour représenter les exlusions
@@ -43,8 +44,8 @@ struct t_graphe {
     int **matriceAdjacence;
     float **matricePonderation;
     t_sommet *sommets;
-    float *temps;
     int nombreSommets;
+    int *degres;
     int *station;
 };
 typedef struct t_graphe Graphe;
