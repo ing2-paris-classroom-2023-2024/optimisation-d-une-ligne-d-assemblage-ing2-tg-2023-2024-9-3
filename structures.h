@@ -1,15 +1,9 @@
 //
-// Created by chloe on 02/12/2023.
+// Created by Alice on 03/12/2023.
 //
 
-#ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_STRUCTURES_H
-#define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_STRUCTURES_H
-
-struct t_operation {
-    int nom;
-    float duree;
-};
-typedef struct t_operation Operation;
+#ifndef UNTITLED1_STRUCTURES_H
+#define UNTITLED1_STRUCTURES_H
 
 struct CheminMaximal {
     int sommet;
@@ -17,15 +11,9 @@ struct CheminMaximal {
     int *chemin;
 };
 
-// Structure pour représenter une station
-struct t_station {
-    int *operation;
-    int nb_operation;
-};
-typedef struct t_station Station;
 struct Sommet {
     char nom[50];
-    int numero;
+    int couleur;
     float temps_execution;
     int couleur;
 };
@@ -55,5 +43,4 @@ typedef struct arete {
     int fin;
 } t_arete;
 
-
-#endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_STRUCTURES_H
+#endif //UNTITLED1_STRUCTURES_H
