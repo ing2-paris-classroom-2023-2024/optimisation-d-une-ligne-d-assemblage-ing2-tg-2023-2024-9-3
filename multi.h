@@ -5,6 +5,10 @@
 #ifndef PROJET_TG_USINE__PRECEDENCES_EXCLUSIONS_H
 #define PROJET_TG_USINE__PRECEDENCES_EXCLUSIONS_H
 #include "structures.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
 void completerDecouverteAvecCouleur() {
     FILE *fichierColoration = fopen("resultatColoration.txt", "r");
     FILE *fichierDecouverte = fopen("decouverteSommets.txt", "r+");
