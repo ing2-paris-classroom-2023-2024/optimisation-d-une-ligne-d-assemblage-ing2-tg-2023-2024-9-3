@@ -5,13 +5,10 @@
 #ifndef PROJET_TG_USINE__PRECEDENCES_EXCLUSIONS_H
 #define PROJET_TG_USINE__PRECEDENCES_EXCLUSIONS_H
 #include "structures.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
+//sous-programme qui met ensemble les fichiers textes renvoyés dans les contraintes seules
 void completerDecouverteAvecCouleur() {
-    FILE *fichierColoration = fopen("resultatColoration.txt", "r");
-    FILE *fichierDecouverte = fopen("decouverteSommets.txt", "r+");
+    FILE *fichierColoration = fopen("resultatColoration.txt", "r");//ouverture du fichier renvoyé dans la contrainte d'exclusion seule
+    FILE *fichierDecouverte = fopen("decouverteSommets.txt", "r+");//ouverture du fichier dans la contrainte prec+tmpscycle
     FILE *fichierTemp = fopen("temp.txt", "w");
 
     if (fichierColoration == NULL || fichierDecouverte == NULL || fichierTemp == NULL) {
@@ -29,16 +26,15 @@ void completerDecouverteAvecCouleur() {
         // Copier le numéro de sommet dans le fichier temporaire
         fprintf(fichierTemp, "%d", numSommet);
 
-        // Si ce n'est pas la première ligne, lisez la couleur correspondant au numéro de sommet depuis le fichier de coloration
         if (numSommet != 0) {
             fscanf(fichierColoration, "%d %d", &numSommet, &couleur);
         } else {
-            // Si c'est la première ligne, réinitialisez la position du fichier de coloration
+            // réinitialisation de  la position du fichier de coloration
             fseek(fichierColoration, 0, SEEK_SET);
             fscanf(fichierColoration, "%d %d", &numSommet, &couleur);
         }
 
-        // Écrire la couleur lue (ou celle de la première ligne) dans le fichier temporaire
+        // Écrire la couleur du sommet  dans le fichier temporaire
         fprintf(fichierTemp, " %d\n", couleur);
     }
 
@@ -51,7 +47,7 @@ void completerDecouverteAvecCouleur() {
     remove("decouverteSommets.txt");
     rename("temp.txt", "decouverteSommets.txt");
 }
-
+//sous-programme qui verifie qu'il n'y a pas de doublons
 int sommet_deja_ecrit(char sommet[50], char sommetsEcrits[100][50], int nombreSommetsEcrits) {
     for (int i = 0; i < nombreSommetsEcrits; i++) {
         if (strcmp(sommet, sommetsEcrits[i]) == 0) {
@@ -60,7 +56,7 @@ int sommet_deja_ecrit(char sommet[50], char sommetsEcrits[100][50], int nombreSo
     }
     return 0;  // Sommet non encore écrit
 }
-
+//tri des sommets dans le fichier texte selon leur precedence
 void ajouterPrecedences(char *nomFichierDecouverte, char *nomFichierPrecedences, char *nomFichierSortie) {
     FILE *fichierDecouverte = fopen(nomFichierDecouverte, "r");
     if (fichierDecouverte == NULL) {
@@ -143,11 +139,10 @@ void afficherSommetsDecouverts(char *nomFichier) {
         nombreSommets++;
     }
 
-    // Réinitialiser la position du curseur dans le fichier
+    // retour au debur du fichier
     fseek(fichierDecouverte, 0, SEEK_SET);
 
-    // Allouer un tableau pour stocker les sommets
-    int *sommets = (int *)malloc(nombreSommets * sizeof(int));
+    int *sommets = (int *)malloc(nombreSommets * sizeof(int));//stockage des sommets
 
     // Lecture des sommets depuis le fichier
     for (int i = 0; i < nombreSommets; i++) {
@@ -169,7 +164,7 @@ void afficherSommetsDecouverts(char *nomFichier) {
     fclose(fichierDecouverte);
     free(sommets);
 }
-
+//mettre un fichier a null
 void vider_fichier(const char *nom_fichier) {
     FILE *fichier = fopen(nom_fichier, "w");
     if (fichier == NULL) {
@@ -178,8 +173,9 @@ void vider_fichier(const char *nom_fichier) {
     }
     fclose(fichier);
 }
-
+//ranger les sommets du fichier texte en dct de leur couleur
 void ranger_sommets(char *fichier_entree) {
+    //vider le fichier si le programme a deja ete compile
     vider_fichier("sommets_places.txt");
 
     FILE *f_entree = fopen(fichier_entree, "r");
@@ -194,14 +190,14 @@ void ranger_sommets(char *fichier_entree) {
     int station_actuelle = 1;
 
     int sommet_marque[100] = {0};
-
+//creation d'un fichier texte pour inscrires sommets rangés
     FILE *fichier_sortie = fopen("sommets_places.txt", "a+");
     if (fichier_sortie == NULL) {
         perror("Erreur lors de l'ouverture du fichier de sortie");
         exit(EXIT_FAILURE);
     }
 
-    while (fgets(ligne, 100, f_entree) != NULL) {
+    while (fgets(ligne, 100, f_entree) != NULL) {//tant qu'il y a des sommets dns le fichier
         int couleur = -1;
         char sommet[100];
 
@@ -210,10 +206,10 @@ void ranger_sommets(char *fichier_entree) {
             continue;
         }
 
-        int sommet_index = atoi(sommet);
+        int sommet_index = atoi(sommet);//conversion du sommet
 
         int sommet_present = 0;
-        fseek(fichier_sortie, 0, SEEK_SET);
+        fseek(fichier_sortie, 0, SEEK_SET);//retour au debut du fichier avant chaque sommet
         while (fgets(ligne, 100, fichier_sortie) != NULL) {
             char *token = strtok(ligne, " \n");
             while (token != NULL) {
@@ -250,7 +246,49 @@ void ranger_sommets(char *fichier_entree) {
     printf("\n");
     fclose(f_entree);
     fclose(fichier_sortie);
+//ajout de la condition de precedence
+    FILE *f_precedences = fopen("../precedences.txt", "r");
+    if (f_precedences == NULL) {
+        perror("Erreur lors de l'ouverture du fichier de précédences");
+        exit(EXIT_FAILURE);
+    }
+
+    int pred, succ;
+
+    while (fscanf(f_precedences, "%d %d", &pred, &succ) == 2) {
+        fseek(fichier_sortie, 0, SEEK_SET);//retour au debut du fichier
+        int pred_present = 0, succ_present = 0;
+
+        // Vérifie si le prédécesseur est déjà placé
+        while (fgets(ligne, 100, fichier_sortie) != NULL) {
+            int value;
+            if (sscanf(ligne, "%d", &value) == 1 && value == pred) {
+                pred_present = 1;
+                break;
+            }
+        }
+
+        // Vérifie si le successeur est déjà placé
+        fseek(fichier_sortie, 0, SEEK_SET);
+        while (fgets(ligne, 100, fichier_sortie) != NULL) {
+            int value;
+            if (sscanf(ligne, "%d", &value) == 1 && value == succ) {
+                succ_present = 1;
+                break;
+            }
+        }
+
+        if (pred_present && !succ_present) {
+            printf("%d est précédé par %d dans la même station.\n", succ, pred);
+            // si le pred est dans une station, le mettre dedans
+            fprintf(fichier_sortie, "%d ", succ);
+        }
+    }
+
+    fclose(f_precedences);
+
 }
+
 
 void multicontraintePREDEX(){
     printf("\t\t\t\t\t\t\tRepartition selon contrainte precedence et exclusions\n\n\n");

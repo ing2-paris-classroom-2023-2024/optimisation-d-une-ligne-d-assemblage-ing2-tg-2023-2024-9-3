@@ -2,12 +2,10 @@
 // Created by edoua on 02/12/2023.
 //
 
-#ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_EXCLUSION_H
-#define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_EXCLUSION_H
+#ifndef PROJET_TG_USINE__EXCLUSIONS_H
+#define PROJET_TG_USINE__EXCLUSIONS_H
 #include "structures.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+//lecture du fichier d'operations afin de recuperer tous les numeros de sommets
 int lire_operation(t_sommet **sommets, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
@@ -23,7 +21,7 @@ int lire_operation(t_sommet **sommets, char *nomFichier) {
     }
     return numSommets;
 }
-
+//lecture du fichier exclusions
 int lireFichierExclusions(exclusion *exclusions, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
@@ -31,12 +29,12 @@ int lireFichierExclusions(exclusion *exclusions, char *nomFichier) {
         exit(1);
     }
     int numExclusions = 0;
-    while (fscanf(fichier, "%s %s", exclusions[numExclusions].sommet1, exclusions[numExclusions].sommet2) == 2) {
+    while (fscanf(fichier, "%s %s", exclusions[numExclusions].sommet1, exclusions[numExclusions].sommet2) == 2) { //remplit la structure exclusions
         numExclusions++;
     }
     return numExclusions;
 }
-
+//chaque sommet est un char et non un int en cas de modification du fichier texte
 int trouvernom(t_sommet *sommets, int numero_sommet, char *nom_sommet) {
     for (int i = 0; i < numero_sommet; i++) {
         if (strcmp(sommets[i].nom, nom_sommet) == 0) {
@@ -45,10 +43,10 @@ int trouvernom(t_sommet *sommets, int numero_sommet, char *nom_sommet) {
     }
     return -1;
 }
-
+//on initialise le graphe des exclusions
 void initialiserGraphe(Graphe *graphe, int numSommets) {
     graphe->numSommets = numSommets;
-    graphe->matriceAdjacence = (int **)malloc(numSommets * sizeof(int *));
+    graphe->matriceAdjacence = (int **)malloc(numSommets * sizeof(int *));//creation de matrice d'adjacence pour visualiser le graphe
     for (int i = 0; i < numSommets; i++) {
         graphe->matriceAdjacence[i] = (int *)malloc(numSommets * sizeof(int));
         for (int j = 0; j < numSommets; j++) {
@@ -58,7 +56,7 @@ void initialiserGraphe(Graphe *graphe, int numSommets) {
     graphe->sommets = (t_sommet *)malloc(numSommets * sizeof(t_sommet));
     graphe->station = (int *)malloc(numSommets * sizeof(int));
 }
-
+//le graphe se parcours dans les 2 sens
 void ajouterArc(Graphe *graphe, int sommet1, int sommet2) {
     graphe->matriceAdjacence[sommet1][sommet2] = 1;
     graphe->matriceAdjacence[sommet2][sommet1] = 1;
@@ -76,8 +74,13 @@ void afficherGraphe(Graphe *graphe) {
         printf("\n");
     }
 }
-
+//affihage en stations
 void affichagestation_exclusion(Graphe *graphe) {
+    FILE *fichier = fopen("resultatExclusions.txt", "w");
+    if (fichier == NULL) {
+        printf("Erreur lors de la création du fichier.");
+        return;
+    }
     printf("\n\t\t\t\t\t\t\tAffichage des stations uniquement contrainte d'exclusion \n\n");
     int nombreStations = 0;
     for (int i = 0; i < graphe->numSommets; i++) {
@@ -94,18 +97,30 @@ void affichagestation_exclusion(Graphe *graphe) {
         }
         printf("\n");
     }
+    for (int s = 1; s <= nombreStations; s++) {
+        fprintf(fichier, "%d ", s);
+        for (int i = 0; i < graphe->numSommets; i++) {
+            if (graphe->station[i] == s) {
+                fprintf(fichier, "%s ", graphe->sommets[i].nom);
+            }
+        }
+        fprintf(fichier, "\n");
+    }
+
+    fclose(fichier);
 }
+//calcul du degre de chaque sommet
 void calculerDegres(Graphe *graphe, int *degres) {
     for (int i = 0; i < graphe->numSommets; i++) {
         degres[i] = 0;
         for (int j = 0; j < graphe->numSommets; j++) {
             if (graphe->matriceAdjacence[i][j] == 1) {
-                degres[i]++;
+                degres[i]++; //des que le sommet a une connxion a un autre on ajoute un degre
             }
         }
     }
 }
-
+//sous programeme qui intervertit 2 sommets
 void echangerSommets(t_sommet *a, t_sommet *b, int *degreA, int *degreB) {
     t_sommet tempSommet = *a;
     *a = *b;
@@ -114,7 +129,7 @@ void echangerSommets(t_sommet *a, t_sommet *b, int *degreA, int *degreB) {
     *degreA = *degreB;
     *degreB = tempDegre;
 }
-
+//code de tri a bulles repris du cours ing1 semestre 2
 t_sommet* trie_a_bulle_degres(t_sommet *sommets, int *degres, int numSommets) {
     // Créer une copie du tableau sommets
     t_sommet *sommetsCopie = (t_sommet *)malloc(numSommets * sizeof(t_sommet));
@@ -131,10 +146,14 @@ t_sommet* trie_a_bulle_degres(t_sommet *sommets, int *degres, int numSommets) {
 
     return sommetsCopie;
 }
-
+//coloration du graphe d'exclusions
 void welsh_powel_coloration(Graphe *graphe, t_sommet *sommetsTrieesParDegre) {
     int couleur = 1;
-
+    FILE *fichier = fopen("resultatColoration.txt", "w");
+    if (fichier == NULL) {
+        printf("Erreur lors de la création du fichier.");
+        return;
+    }
     for (int i = 0; i < graphe->numSommets; i++) {
         int sommetActuel = trouvernom(sommetsTrieesParDegre, graphe->numSommets, graphe->sommets[i].nom);
         graphe->station[sommetActuel] = -1;
@@ -165,9 +184,14 @@ void welsh_powel_coloration(Graphe *graphe, t_sommet *sommetsTrieesParDegre) {
             couleur = couleurDisponible + 1;
         }
     }
+    for (int i = 0; i < graphe->numSommets; i++) {
+        fprintf(fichier, "%s %d\n", graphe->sommets[i].nom, graphe->station[i]);
+    }
+
+    fclose(fichier);
 }
 
-
+//repartition e station selon la couleur
 void repartition_exclusion(char *fichier_operation, char *fichier_exclusion) {
     Graphe graphe;
     t_sommet *sommets = NULL;
@@ -191,9 +215,8 @@ void repartition_exclusion(char *fichier_operation, char *fichier_exclusion) {
     welsh_powel_coloration(&graphe, sommetsTries);
     free(sommetsTries);
     affichagestation_exclusion(&graphe);
-    //afficherGraphe(&graphe);
+
 }
 
 
-
-#endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_33_EXCLUSION_H
+#endif //PROJET_TG_USINE__EXCLUSIONS_H

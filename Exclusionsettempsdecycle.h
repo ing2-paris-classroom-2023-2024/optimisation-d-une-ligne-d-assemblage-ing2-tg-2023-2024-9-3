@@ -1,16 +1,15 @@
 //
-// Created by Alice on 03/12/2023.
+// Created by chloe on 03/12/2023.
 //
 
-#ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_EXCLUSIONSETTEMPSDECYCLE_H
-#define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_EXCLUSIONSETTEMPSDECYCLE_H
-
+#ifndef PROJET_TG_USINE__EXCLUSIONS_TEMPSCYCLE_H
+#define PROJET_TG_USINE__EXCLUSIONS_TEMPSCYCLE_H
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include "structures.h"
 
-// LECTURE DES FICHIERS
+//lecture fichie operarion
 int Lire_Operations(t_sommet **sommets, char *nomFichier) {
     FILE *fichier = fopen(nomFichier, "r");
     if (fichier == NULL) {
@@ -256,4 +255,10 @@ void RepartitionExclusionTempsCycle(char *fichier_operation, char *fichier_exclu
     free(infosColorees);
 }
 
-#endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_EXCLUSIONSETTEMPSDECYCLE_H
+void repartition_exclusion_temps(char*fichierOperation,char*fichierExclusion,char*fichierTempsCycle){
+    printf("\t\t\t\t\t\t\tRepartition selon contrainte exclusion et temps de cycle\n\n\n");
+
+    float tempsCycle= liretempscycle(fichierTempsCycle);
+    RepartitionExclusionTempsCycle(fichierOperation,fichierExclusion,tempsCycle);
+}
+#endif //PROJET_TG_USINE__EXCLUSIONS_TEMPSCYCLE_H
