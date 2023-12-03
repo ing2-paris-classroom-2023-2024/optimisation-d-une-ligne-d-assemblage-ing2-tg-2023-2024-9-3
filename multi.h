@@ -1,14 +1,14 @@
 //
-// Created by chloe on 03/12/2023.
+// Created by chloe on 02/12/2023.
 //
 
-#ifndef PROJET_TG_USINE__PRECEDENCES_EXCLUSIONS_H
-#define PROJET_TG_USINE__PRECEDENCES_EXCLUSIONS_H
+#ifndef OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_MULTI_H
+#define OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_MULTI_H
 #include "structures.h"
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
+#include "exclusions.h"
+#include "precedence_temps_cycle.h"
+
+
 void completerDecouverteAvecCouleur() {
     FILE *fichierColoration = fopen("resultatColoration.txt", "r");
     FILE *fichierDecouverte = fopen("decouverteSommets.txt", "r+");
@@ -68,7 +68,7 @@ void ajouterPrecedences(char *nomFichierDecouverte, char *nomFichierPrecedences,
         return;
     }
 
-    Sommet sommets[100];
+    t_sommet sommets[100];
     int nbSommets = 0;
 
     while (fscanf(fichierDecouverte, "%s %d", sommets[nbSommets].nom, &sommets[nbSommets].couleur) != EOF) {
@@ -259,4 +259,5 @@ void multicontraintePREDEX(){
     ajouterPrecedences("decouverteSommets.txt","../precedences.txt","fichierResultats.txt");
     ranger_sommets("fichierResultats.txt");
 }
-#endif //PROJET_TG_USINE__PRECEDENCES_EXCLUSIONS_H
+
+#endif //OPTIMISATION_D_UNE_LIGNE_D_ASSEMBLAGE_ING2_TG_2023_2024_9_3_MULTI_H
